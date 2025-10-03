@@ -12,7 +12,8 @@ const Sidebar = ({ activeSection, setActiveSection }) => {
     { id: 'clients', label: 'Clientes', icon: '👥' },
     { id: 'cases', label: 'Casos', icon: '📁' },
     { id: 'appointments', label: 'Citas', icon: '📅' },
-    { id: 'documents', label: 'Documentos', icon: '📄' }
+    { id: 'documents', label: 'Documentos', icon: '📄' },
+    { id: 'updates', label: 'Actualizaciones', icon: '📝' }
   ];
 
   return (

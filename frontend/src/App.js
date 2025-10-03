@@ -2276,8 +2276,34 @@ function App() {
     }
   };
 
+  // Client Portal Functions
+  const handleClientLogin = async (loginData) => {
+    try {
+      setClientSession(loginData);
+      
+      // Fetch client dashboard data
+      const response = await axios.get(`${API}/client/dashboard/${loginData.client_id}`);
+      setClientDashboardData(response.data);
+      setIsClientPortal(true);
+    } catch (error) {
+      console.error('Error loading client dashboard:', error);
+    }
+  };
+
+  const handleClientLogout = () => {
+    setClientSession(null);
+    setClientDashboardData(null);
+    setIsClientPortal(false);
+  };
+
   useEffect(() => {
-    fetchData();
+    // Check if URL contains /client to show client portal
+    if (window.location.pathname.includes('/client')) {
+      setIsClientPortal(true);
+      setLoading(false);
+    } else {
+      fetchData();
+    }
   }, []);
 
   if (loading) {

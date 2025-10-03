@@ -615,6 +615,168 @@ async def delete_appointment(appointment_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Case Updates CRUD
+@api_router.post("/case-updates", response_model=CaseUpdate)
+async def create_case_update(update: CaseUpdateCreate):
+    """Create a new case update/progress entry"""
+    try:
+        # Verify case exists
+        case = await db.cases.find_one({"id": update.case_id})
+        if not case:
+            raise HTTPException(status_code=404, detail="Case not found")
+        
+        # Get client_id from case
+        client_id = case["client_id"]
+        
+        update_dict = update.dict()
+        update_dict["client_id"] = client_id
+        update_obj = CaseUpdate(**update_dict)
+        update_data = prepare_for_mongo(update_obj.dict())
+        await db.case_updates.insert_one(update_data)
+        return update_obj
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/case-updates", response_model=List[CaseUpdate])
+async def get_case_updates(case_id: Optional[str] = None, client_id: Optional[str] = None):
+    """Get case updates with optional filtering"""
+    try:
+        filter_query = {}
+        
+        if case_id:
+            filter_query["case_id"] = case_id
+            
+        if client_id:
+            filter_query["client_id"] = client_id
+        
+        updates = await db.case_updates.find(filter_query).sort("created_at", -1).to_list(1000)
+        return [CaseUpdate(**update) for update in updates]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/case-updates/{update_id}")
+async def delete_case_update(update_id: str):
+    """Delete a case update"""
+    try:
+        result = await db.case_updates.delete_one({"id": update_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Case update not found")
+        return {"message": "Case update deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Client Portal APIs
+@api_router.post("/client/login")
+async def client_login(login_data: ClientLogin):
+    """Simple client authentication using email and phone"""
+    try:
+        # Find client by email and phone (using phone as simple password)
+        client = await db.clients.find_one({
+            "email": login_data.email,
+            "phone": login_data.phone
+        })
+        
+        if not client:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        # Return basic client info for session (in real app, use JWT tokens)
+        return {
+            "message": "Login successful",
+            "client_id": client["id"],
+            "client_name": f"{client['first_name']} {client['last_name']}"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/client/dashboard/{client_id}", response_model=ClientDashboard)
+async def get_client_dashboard(client_id: str):
+    """Get client's personalized dashboard"""
+    try:
+        # Get client info
+        client = await db.clients.find_one({"id": client_id})
+        if not client:
+            raise HTTPException(status_code=404, detail="Client not found")
+        
+        # Get client's active cases
+        active_cases = await db.cases.find({
+            "client_id": client_id,
+            "status": {"$in": ["active", "pending"]}
+        }).sort("created_at", -1).to_list(100)
+        
+        # Get recent updates for client (only visible ones)
+        recent_updates = await db.case_updates.find({
+            "client_id": client_id,
+            "is_visible_to_client": True
+        }).sort("created_at", -1).limit(10).to_list(10)
+        
+        # Get upcoming appointments
+        today = datetime.now(timezone.utc).date().isoformat()
+        upcoming_appointments = await db.appointments.find({
+            "client_id": client_id,
+            "appointment_date": {"$gte": today},
+            "is_completed": False
+        }).sort("appointment_date", 1).limit(5).to_list(5)
+        
+        # Get document count
+        total_documents = await db.documents.count_documents({"client_id": client_id})
+        
+        return ClientDashboard(
+            client_info=Client(**client),
+            active_cases=[Case(**case) for case in active_cases],
+            recent_updates=[CaseUpdate(**update) for update in recent_updates],
+            upcoming_appointments=[Appointment(**appointment) for appointment in upcoming_appointments],
+            total_documents=total_documents
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/client/{client_id}/case-timeline/{case_id}")
+async def get_case_timeline(client_id: str, case_id: str):
+    """Get timeline of updates for a specific case (client view)"""
+    try:
+        # Verify the case belongs to this client
+        case = await db.cases.find_one({"id": case_id, "client_id": client_id})
+        if not case:
+            raise HTTPException(status_code=404, detail="Case not found or access denied")
+        
+        # Get case updates (only visible to client)
+        updates = await db.case_updates.find({
+            "case_id": case_id,
+            "client_id": client_id,
+            "is_visible_to_client": True
+        }).sort("created_at", -1).to_list(100)
+        
+        # Get case appointments
+        appointments = await db.appointments.find({
+            "case_id": case_id,
+            "client_id": client_id
+        }).sort("appointment_date", -1).to_list(100)
+        
+        # Get case documents
+        documents = await db.documents.find({
+            "case_id": case_id,
+            "client_id": client_id
+        }).sort("uploaded_at", -1).to_list(100)
+        
+        return {
+            "case": Case(**case),
+            "updates": [CaseUpdate(**update) for update in updates],
+            "appointments": [Appointment(**appointment) for appointment in appointments],
+            "documents": [Document(**doc) for doc in documents]
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Include the router in the main app
 app.include_router(api_router)
 

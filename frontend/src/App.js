@@ -2337,6 +2337,27 @@ function App() {
     }
   };
 
+  // Client Portal Route Handler
+  if (isClientPortal) {
+    if (!clientSession) {
+      return <ClientLogin onLogin={handleClientLogin} />;
+    }
+    
+    if (!clientDashboardData) {
+      return (
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando su información...</p>
+          </div>
+        </div>
+      );
+    }
+    
+    return <ClientDashboard clientData={clientDashboardData} onLogout={handleClientLogout} />;
+  }
+
+  // Lawyer Admin Interface
   return (
     <div className="min-h-screen bg-gray-100 flex">
       <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />

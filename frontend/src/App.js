@@ -1704,6 +1704,539 @@ const AppointmentManagement = ({ appointments, clients, onRefresh }) => {
   );
 };
 
+// Client Portal Login Component
+const ClientLogin = ({ onLogin }) => {
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await axios.post(`${API}/client/login`, { email, phone });
+      onLogin(response.data);
+    } catch (error) {
+      setError('Credenciales inválidas. Verifique su email y teléfono.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+        <div className="text-center mb-8">
+          <img 
+            src="https://images.unsplash.com/photo-1662104935883-e9dd0619eaba" 
+            alt="Legal Services" 
+            className="mx-auto w-20 h-20 rounded-full object-cover mb-4"
+          />
+          <h2 className="text-2xl font-bold text-gray-900">Portal del Cliente</h2>
+          <p className="text-gray-600">Accede para ver el estado de tus casos</p>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email *
+            </label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="su-email@ejemplo.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Teléfono *
+            </label>
+            <input
+              type="tel"
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="+34-91-123-4567"
+            />
+          </div>
+
+          {error && (
+            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-300"
+          >
+            {loading ? 'Accediendo...' : 'Acceder'}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center text-sm text-gray-600">
+          <p>Use su email registrado y número de teléfono</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Client Dashboard Component
+const ClientDashboard = ({ clientData, onLogout }) => {
+  const [selectedCase, setSelectedCase] = useState(null);
+  const [caseTimeline, setCaseTimeline] = useState(null);
+  const [loadingTimeline, setLoadingTimeline] = useState(false);
+
+  const loadCaseTimeline = async (caseId) => {
+    setLoadingTimeline(true);
+    try {
+      const response = await axios.get(`${API}/client/${clientData.client_info.id}/case-timeline/${caseId}`);
+      setCaseTimeline(response.data);
+      setSelectedCase(caseId);
+    } catch (error) {
+      console.error('Error loading case timeline:', error);
+    } finally {
+      setLoadingTimeline(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'closed': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-blue-100 text-blue-800';
+    }
+  };
+
+  const getUpdateTypeIcon = (type) => {
+    switch (type) {
+      case 'progress': return '📈';
+      case 'hearing': return '⚖️';
+      case 'document': return '📄';
+      case 'status_change': return '🔄';
+      default: return '📝';
+    }
+  };
+
+  if (selectedCase && caseTimeline) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-6">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <button
+                  onClick={() => setSelectedCase(null)}
+                  className="text-blue-600 hover:text-blue-800 mb-2"
+                >
+                  ← Volver al Dashboard
+                </button>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {caseTimeline.case.title}
+                </h1>
+                <p className="text-gray-600">Caso #{caseTimeline.case.case_number}</p>
+              </div>
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(caseTimeline.case.status)}`}>
+                {caseTimeline.case.status === 'active' ? 'Activo' : 
+                 caseTimeline.case.status === 'pending' ? 'Pendiente' : 'Cerrado'}
+              </span>
+            </div>
+          </div>
+
+          {/* Case Details */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div className="bg-white rounded-xl p-6 shadow-lg">
+              <h3 className="font-semibold text-gray-900 mb-3">Información del Caso</h3>
+              <div className="space-y-2 text-sm">
+                <p><span className="font-medium">Tipo:</span> {caseTimeline.case.case_type}</p>
+                <p><span className="font-medium">Fecha Inicio:</span> {formatDate(caseTimeline.case.start_date)}</p>
+                {caseTimeline.case.next_hearing && (
+                  <p><span className="font-medium">Próxima Audiencia:</span> {formatDate(caseTimeline.case.next_hearing)}</p>
+                )}
+                {caseTimeline.case.court_name && (
+                  <p><span className="font-medium">Tribunal:</span> {caseTimeline.case.court_name}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl p-6 shadow-lg">
+              <h3 className="font-semibold text-gray-900 mb-3">Próximas Citas</h3>
+              {caseTimeline.appointments.length === 0 ? (
+                <p className="text-gray-500 text-sm">No hay citas programadas</p>
+              ) : (
+                <div className="space-y-2">
+                  {caseTimeline.appointments.slice(0, 3).map(appointment => (
+                    <div key={appointment.id} className="text-sm">
+                      <p className="font-medium">{appointment.title}</p>
+                      <p className="text-gray-600">{appointment.appointment_date} - {appointment.appointment_time}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="bg-white rounded-xl p-6 shadow-lg">
+              <h3 className="font-semibold text-gray-900 mb-3">Documentos</h3>
+              <p className="text-2xl font-bold text-blue-600 mb-2">{caseTimeline.documents.length}</p>
+              <p className="text-gray-600 text-sm">documentos disponibles</p>
+            </div>
+          </div>
+
+          {/* Timeline */}
+          <div className="bg-white rounded-xl p-6 shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">Historial y Avances del Caso</h3>
+            
+            {loadingTimeline ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {caseTimeline.updates.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No hay actualizaciones disponibles</p>
+                ) : (
+                  caseTimeline.updates.map(update => (
+                    <div key={update.id} className="flex space-x-4 border-l-2 border-blue-200 pl-6 pb-6 relative">
+                      <div className="absolute -left-2 bg-blue-600 w-4 h-4 rounded-full"></div>
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-lg">{getUpdateTypeIcon(update.update_type)}</span>
+                            <h4 className="font-medium text-gray-900">{update.title}</h4>
+                          </div>
+                          <span className="text-sm text-gray-500">{formatDate(update.created_at)}</span>
+                        </div>
+                        <p className="text-gray-700">{update.description}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-xl p-8 text-white mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">
+                Bienvenido, {clientData.client_info.first_name}
+              </h1>
+              <p className="text-blue-200">Panel de seguimiento de casos legales</p>
+            </div>
+            <button
+              onClick={onLogout}
+              className="bg-white text-blue-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Cerrar Sesión
+            </button>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-xl p-6 shadow-lg text-center">
+            <div className="text-3xl font-bold text-blue-600 mb-2">{clientData.active_cases.length}</div>
+            <div className="text-gray-600">Casos Activos</div>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow-lg text-center">
+            <div className="text-3xl font-bold text-green-600 mb-2">{clientData.recent_updates.length}</div>
+            <div className="text-gray-600">Actualizaciones</div>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow-lg text-center">
+            <div className="text-3xl font-bold text-purple-600 mb-2">{clientData.upcoming_appointments.length}</div>
+            <div className="text-gray-600">Citas Próximas</div>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow-lg text-center">
+            <div className="text-3xl font-bold text-orange-600 mb-2">{clientData.total_documents}</div>
+            <div className="text-gray-600">Documentos</div>
+          </div>
+        </div>
+
+        {/* Active Cases */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white rounded-xl p-6 shadow-lg">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Mis Casos Activos</h2>
+            {clientData.active_cases.length === 0 ? (
+              <p className="text-gray-500">No tienes casos activos</p>
+            ) : (
+              <div className="space-y-4">
+                {clientData.active_cases.map(case_ => (
+                  <div key={case_.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-medium text-gray-900">{case_.title}</h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(case_.status)}`}>
+                        {case_.status === 'active' ? 'Activo' : 'Pendiente'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">Caso #{case_.case_number}</p>
+                    <p className="text-sm text-gray-700 mb-3">{case_.description}</p>
+                    {case_.next_hearing && (
+                      <p className="text-sm text-blue-600 mb-3">
+                        Próxima audiencia: {formatDate(case_.next_hearing)}
+                      </p>
+                    )}
+                    <button
+                      onClick={() => loadCaseTimeline(case_.id)}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                    >
+                      Ver Detalles y Avances
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Recent Updates */}
+          <div className="bg-white rounded-xl p-6 shadow-lg">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Actualizaciones Recientes</h2>
+            {clientData.recent_updates.length === 0 ? (
+              <p className="text-gray-500">No hay actualizaciones recientes</p>
+            ) : (
+              <div className="space-y-4">
+                {clientData.recent_updates.slice(0, 5).map(update => (
+                  <div key={update.id} className="border-l-4 border-blue-500 pl-4">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span>{getUpdateTypeIcon(update.update_type)}</span>
+                      <h4 className="font-medium text-gray-900 text-sm">{update.title}</h4>
+                    </div>
+                    <p className="text-sm text-gray-700 mb-1">{update.description}</p>
+                    <p className="text-xs text-gray-500">{formatDate(update.created_at)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Upcoming Appointments */}
+        <div className="bg-white rounded-xl p-6 shadow-lg">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Próximas Citas</h2>
+          {clientData.upcoming_appointments.length === 0 ? (
+            <p className="text-gray-500">No tienes citas programadas</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {clientData.upcoming_appointments.map(appointment => (
+                <div key={appointment.id} className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-2">{appointment.title}</h4>
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <p>📅 {formatDate(appointment.appointment_date)}</p>
+                    <p>🕐 {appointment.appointment_time}</p>
+                    <p>⏱️ {appointment.duration_minutes} minutos</p>
+                    {appointment.location && <p>📍 {appointment.location}</p>}
+                  </div>
+                  {appointment.description && (
+                    <p className="text-sm text-gray-700 mt-2">{appointment.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Case Update Management for Lawyer
+const CaseUpdateManagement = ({ cases, clients, onRefresh }) => {
+  const [showForm, setShowForm] = useState(false);
+  const [selectedCase, setSelectedCase] = useState('');
+  const [formData, setFormData] = useState({
+    case_id: '',
+    title: '',
+    description: '',
+    update_type: 'general',
+    is_visible_to_client: true
+  });
+
+  const resetForm = () => {
+    setFormData({
+      case_id: '',
+      title: '',
+      description: '',
+      update_type: 'general',
+      is_visible_to_client: true
+    });
+    setShowForm(false);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/case-updates`, formData);
+      resetForm();
+      onRefresh();
+      alert('Actualización creada exitosamente');
+    } catch (error) {
+      console.error('Error creating update:', error);
+      alert('Error al crear la actualización');
+    }
+  };
+
+  const getCaseName = (caseId) => {
+    const case_ = cases.find(c => c.id === caseId);
+    return case_ ? case_.title : 'Caso no encontrado';
+  };
+
+  const getClientName = (clientId) => {
+    const client = clients.find(c => c.id === clientId);
+    return client ? `${client.first_name} ${client.last_name}` : 'Cliente no encontrado';
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">Actualizaciones de Casos</h2>
+        <button
+          onClick={() => setShowForm(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          + Nueva Actualización
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="bg-white rounded-xl p-6 shadow-lg">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Crear Actualización de Caso</h3>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Caso *</label>
+                <select
+                  required
+                  value={formData.case_id}
+                  onChange={(e) => setFormData({...formData, case_id: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Seleccionar caso</option>
+                  {cases.map(case_ => (
+                    <option key={case_.id} value={case_.id}>
+                      {case_.title} - {getClientName(case_.client_id)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Actualización</label>
+                <select
+                  value={formData.update_type}
+                  onChange={(e) => setFormData({...formData, update_type: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="general">General</option>
+                  <option value="progress">Progreso</option>
+                  <option value="hearing">Audiencia</option>
+                  <option value="document">Documento</option>
+                  <option value="status_change">Cambio de Estado</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
+              <input
+                type="text"
+                required
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="ej. Audiencia programada, Documentos recibidos..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Descripción *</label>
+              <textarea
+                rows="3"
+                required
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Descripción detallada de la actualización..."
+              ></textarea>
+            </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="visible_to_client"
+                checked={formData.is_visible_to_client}
+                onChange={(e) => setFormData({...formData, is_visible_to_client: e.target.checked})}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="visible_to_client" className="ml-2 text-sm text-gray-700">
+                Visible para el cliente
+              </label>
+            </div>
+
+            <div className="flex space-x-4">
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Crear Actualización
+              </button>
+              
+              <button
+                type="button"
+                onClick={resetForm}
+                className="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      <div className="bg-white rounded-xl p-6 shadow-lg">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Portal del Cliente</h3>
+        <p className="text-gray-600 mb-4">
+          Los clientes pueden acceder a su portal usando su email y teléfono registrados en:
+        </p>
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <p className="font-mono text-blue-800">
+            {window.location.origin}/client
+          </p>
+          <p className="text-sm text-blue-600 mt-2">
+            Los clientes verán sus casos, actualizaciones y próximas citas
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main App Component
 function App() {
   const [activeSection, setActiveSection] = useState('dashboard');

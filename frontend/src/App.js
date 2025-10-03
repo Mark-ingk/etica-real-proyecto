@@ -2329,6 +2329,8 @@ function App() {
         return <DocumentManagement clients={clients} documents={documents} onRefresh={fetchData} />;
       case 'appointments':
         return <AppointmentManagement appointments={appointments} clients={clients} onRefresh={fetchData} />;
+      case 'updates':
+        return <CaseUpdateManagement cases={cases} clients={clients} onRefresh={fetchData} />;
       default:
         return <Dashboard stats={stats} clients={clients} cases={cases} appointments={appointments} />;
     }

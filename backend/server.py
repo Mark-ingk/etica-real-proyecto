@@ -181,6 +181,35 @@ class DashboardStats(BaseModel):
     upcoming_appointments: int
     total_documents: int
 
+class CaseUpdate(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    case_id: str
+    client_id: str
+    title: str
+    description: str
+    update_type: str  # "progress", "hearing", "document", "status_change", "general"
+    is_visible_to_client: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_by: str = "lawyer"  # "lawyer" or "system"
+
+class CaseUpdateCreate(BaseModel):
+    case_id: str
+    title: str
+    description: str
+    update_type: str = "general"
+    is_visible_to_client: bool = True
+
+class ClientLogin(BaseModel):
+    email: str
+    phone: str  # Using phone as simple password
+
+class ClientDashboard(BaseModel):
+    client_info: Client
+    active_cases: List[Case]
+    recent_updates: List[CaseUpdate]
+    upcoming_appointments: List[Appointment]
+    total_documents: int
+
 # Helper functions
 def prepare_for_mongo(data):
     """Prepare data for MongoDB storage"""

@@ -2246,6 +2246,11 @@ function App() {
   const [documents, setDocuments] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Client Portal State
+  const [isClientPortal, setIsClientPortal] = useState(false);
+  const [clientSession, setClientSession] = useState(null);
+  const [clientDashboardData, setClientDashboardData] = useState(null);
 
   // Fetch all data
   const fetchData = async () => {

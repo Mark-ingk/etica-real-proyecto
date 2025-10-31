@@ -2,171 +2,169 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import axios from 'axios';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 const API = `${BACKEND_URL}/api`;
 
 // Navigation Component
-const Sidebar = ({ activeSection, setActiveSection }) => {
+const Sidebar = ({ activeSection, setActiveSection, isCollapsed }) => {
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'clients', label: 'Clientes', icon: '👥' },
-    { id: 'cases', label: 'Casos', icon: '📁' },
-    { id: 'appointments', label: 'Citas', icon: '📅' },
-    { id: 'documents', label: 'Documentos', icon: '📄' },
-    { id: 'updates', label: 'Actualizaciones', icon: '📝' }
+    { id: 'dashboard', label:'Dashboard', icon: '' },
+    { id: 'clients', label: 'Clientes', icon: '' },
+    { id: 'cases', label: 'Casos', icon: '' },
+    { id: 'appointments', label: 'Citas', icon: '' },
+    { id: 'documents', label: 'Documentos', icon: '' },
+    { id: 'updates', label: 'Actualizaciones', icon: '' }
   ];
 
   return (
-    <div className="bg-gray-900 text-white w-64 min-h-screen p-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-blue-400">LegalAdmin</h1>
-        <p className="text-gray-400 text-sm">Sistema de Gestión Legal</p>
-      </div>
-      
-      <nav className="space-y-2">
+    <nav className={`navigation ${isCollapsed ? 'collapsed' : ''}`}>
+      <ul>
+        <li>
+          <a href="#" onClick={(e) => e.preventDefault()}>
+            <span className="icon">
+              <ion-icon name="briefcase"></ion-icon>
+            </span>
+            {!isCollapsed && <span className="title">LegalDesk</span>}
+          </a>
+        </li>
         {menuItems.map(item => (
-          <button
-            key={item.id}
-            onClick={() => setActiveSection(item.id)}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-              activeSection === item.id
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-            }`}
-          >
-            <span className="text-xl">{item.icon}</span>
-            <span className="font-medium">{item.label}</span>
-          </button>
+          <li key={item.id} className={activeSection === item.id ? 'hovered' : ''}>
+            <a
+              href="#"
+              onClick={(e) => { e.preventDefault(); setActiveSection(item.id); }}
+              className={`relative`}
+              title={isCollapsed ? item.label : ''}
+            >
+              <span className="icon">
+                <ion-icon name={
+                  item.id === 'dashboard' ? 'stats-chart-outline' :
+                  item.id === 'clients' ? 'people-outline' :
+                  item.id === 'cases' ? 'folder-outline' :
+                  item.id === 'appointments' ? 'calendar-outline' :
+                  item.id === 'documents' ? 'document-text-outline' :
+                  item.id === 'updates' ? 'create-outline' : 'ellipse-outline'
+                }></ion-icon>
+               </span>
+               {!isCollapsed && <span className="title">{item.label}</span>}
+            </a>
+          </li>
         ))}
-      </nav>
-      
-      <div className="mt-8 pt-8 border-t border-gray-700">
-        <div className="text-xs text-gray-500">
-          <p>© 2025 LegalAdmin</p>
-          <p>Gestión Profesional</p>
-        </div>
-      </div>
-    </div>
+      </ul>
+    </nav>
   );
 };
 
 // Dashboard Component
-const Dashboard = ({ stats, clients, cases, appointments }) => {
+const Dashboard = ({ stats, clients, cases, appointments, caseUpdates }) => {
   return (
     <div className="space-y-6">
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 rounded-2xl p-8 text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <img 
-            src="https://images.unsplash.com/photo-1662104935883-e9dd0619eaba" 
-            alt="Legal Professional" 
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <div className="relative z-10">
-          <h1 className="text-4xl font-bold mb-2">Dashboard Legal</h1>
-          <p className="text-xl opacity-90">Gestión integral de clientes y casos</p>
-        </div>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Clientes</p>
-              <p className="text-3xl font-bold text-blue-600">{stats.total_clients || 0}</p>
-            </div>
-            <div className="bg-blue-100 p-3 rounded-full">
-              <span className="text-2xl">👥</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Casos Activos</p>
-              <p className="text-3xl font-bold text-green-600">{stats.active_cases || 0}</p>
-            </div>
-            <div className="bg-green-100 p-3 rounded-full">
-              <span className="text-2xl">📁</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-          <div>
-            <p className="text-sm font-medium text-gray-600">Próximas Citas</p>
-            <p className="text-3xl font-bold text-purple-600">{stats.upcoming_appointments || 0}</p>
-          </div>
-          <div className="bg-purple-100 p-3 rounded-full">
-            <span className="text-2xl">📅</span>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Documentos</p>
-              <p className="text-3xl font-bold text-orange-600">{stats.total_documents || 0}</p>
-            </div>
-            <div className="bg-orange-100 p-3 rounded-full">
-              <span className="text-2xl">📄</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Clients */}
-        <div className="bg-white rounded-xl p-6 shadow-lg">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Clientes Recientes</h3>
-          <div className="space-y-3">
-            {clients.slice(0, 5).map(client => (
-              <div key={client.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 font-semibold">
-                    {client.first_name?.charAt(0)}{client.last_name?.charAt(0)}
-                  </span>
+      {/* Main Content Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Side - Stats Cards and Main Content Area */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Stats Cards - Square Design */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="rounded-xl p-8 shadow-lg border border-gray-600" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', minHeight: '140px', backdropFilter: 'blur(10px)'}}>
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <div className="bg-blue-100 p-4 rounded-full mb-4">
+                  <span className="text-2xl">👥</span>
                 </div>
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900">
-                    {client.first_name} {client.last_name}
-                  </p>
-                  <p className="text-sm text-gray-500">{client.email}</p>
-                </div>
-                <span className={`px-2 py-1 text-xs rounded-full ${
-                  client.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {client.status}
-                </span>
+                <p className="text-sm font-medium text-gray-300 mb-2">Total Clientes</p>
+                <p className="text-3xl font-bold text-blue-400">{stats.total_clients || 0}</p>
               </div>
-            ))}
+            </div>
+            
+            <div className="rounded-xl p-8 shadow-lg border border-gray-600" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', minHeight: '140px', backdropFilter: 'blur(10px)'}}>
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <div className="bg-green-100 p-4 rounded-full mb-4">
+                  <span className="text-2xl">📁</span>
+                </div>
+                <p className="text-sm font-medium text-gray-300 mb-2">Casos Activos</p>
+                <p className="text-3xl font-bold text-green-400">{stats.active_cases || 0}</p>
+              </div>
+            </div>
+            
+            <div className="rounded-xl p-8 shadow-lg border border-gray-600" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', minHeight: '140px', backdropFilter: 'blur(10px)'}}>
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <div className="bg-orange-100 p-4 rounded-full mb-4">
+                  <span className="text-2xl">📄</span>
+                </div>
+                <p className="text-sm font-medium text-gray-300 mb-2">Documentos</p>
+                <p className="text-3xl font-bold text-orange-400">{stats.total_documents || 0}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Cases */}
+          <div className="rounded-xl p-4 shadow-lg border border-gray-600" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', backdropFilter: 'blur(10px)'}}>
+            <h3 className="text-lg font-semibold text-gray-300 mb-4">Casos Recientes</h3>
+            <div className="space-y-3">
+              {cases.slice(0, 5).map(case_ => (
+                <div key={case_.id} className="p-3 rounded-lg" style={{backgroundColor: 'rgba(31, 41, 55, 0.6)', backdropFilter: 'blur(5px)'}}>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-medium text-gray-200">{case_.title}</p>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      case_.status === 'active' ? 'bg-green-100 text-green-800' :
+                      case_.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {case_.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-400">{case_.case_number}</p>
+                  <p className="text-xs text-gray-500">{case_.case_type}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Historial de Actualizaciones */}
+          <div className="rounded-xl p-4 shadow-lg border border-gray-600" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', backdropFilter: 'blur(10px)'}}>
+            <h3 className="text-lg font-semibold text-gray-300 mb-4">Historial de Actualizaciones</h3>
+            {caseUpdates && caseUpdates.length > 0 ? (
+              <div className="space-y-4">
+                {caseUpdates.slice(0, 10).map(update => (
+                  <div key={update.id} className="border-l-4 border-blue-500 pl-4">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="text-lg">{getUpdateTypeIcon(update.update_type)}</span>
+                      <h4 className="font-medium text-gray-200 text-sm">{update.title}</h4>
+                    </div>
+                    {update.description && (
+                      <p className="text-sm text-gray-400 mb-1">{update.description}</p>
+                    )}
+                    <p className="text-xs text-gray-500">{formatDate(update.created_at)}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-400 text-sm">No hay actualizaciones registradas todavía</p>
+            )}
           </div>
         </div>
 
-        {/* Recent Cases */}
-        <div className="bg-white rounded-xl p-6 shadow-lg">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Casos Recientes</h3>
-          <div className="space-y-3">
-            {cases.slice(0, 5).map(case_ => (
-              <div key={case_.id} className="p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="font-medium text-gray-900">{case_.title}</p>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    case_.status === 'active' ? 'bg-green-100 text-green-800' :
-                    case_.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {case_.status}
-                  </span>
+        {/* Right Side - Clientes Recientes */}
+        <div className="lg:col-span-1">
+          <div className="rounded-xl p-8 shadow-lg h-full border border-gray-600" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', backdropFilter: 'blur(10px)', minHeight: '85vh'}}>
+            <h3 className="text-xl font-semibold text-gray-300 mb-6">Clientes Recientes</h3>
+            <div className="space-y-3 overflow-y-auto" style={{maxHeight: 'calc(85vh - 120px)'}}>
+              {clients.slice(0, 15).map(client => (
+                <div key={client.id} className="p-3 rounded-lg" style={{backgroundColor: 'rgba(31, 41, 55, 0.6)', backdropFilter: 'blur(5px)'}}>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-medium text-gray-200">
+                      {client.first_name} {client.last_name}
+                    </p>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      client.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {client.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-400">{client.email}</p>
+                  <p className="text-xs text-gray-500">{client.phone || 'Sin teléfono'}</p>
                 </div>
-                <p className="text-sm text-gray-500">{case_.case_number}</p>
-                <p className="text-xs text-gray-400">{case_.case_type}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -277,12 +275,12 @@ const ClientManagement = ({ clients, onRefresh }) => {
           </button>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-lg">
+        <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Personal Info */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Información Personal</h3>
+                <h3 className="text-lg font-medium text-gray-300">Información Personal</h3>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -483,7 +481,7 @@ const ClientManagement = ({ clients, onRefresh }) => {
       </div>
 
       {/* Search and Filter */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+      <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <input
@@ -511,7 +509,7 @@ const ClientManagement = ({ clients, onRefresh }) => {
       </div>
 
       {/* Clients Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="rounded-xl shadow-lg overflow-hidden" style={{backgroundColor: '#111828'}}>
         {filteredClients.length === 0 ? (
           <div className="p-12 text-center">
             <img 
@@ -544,7 +542,7 @@ const ClientManagement = ({ clients, onRefresh }) => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-600" style={{backgroundColor: '#111828'}}>
                 {filteredClients.map(client => (
                   <tr key={client.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -719,12 +717,12 @@ const CaseManagement = ({ cases, clients, onRefresh }) => {
           </button>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-lg">
+        <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Basic Case Info */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Información Básica</h3>
+                <h3 className="text-lg font-medium text-gray-300">Información Básica</h3>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
@@ -961,7 +959,7 @@ const CaseManagement = ({ cases, clients, onRefresh }) => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+      <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por Estado</label>
@@ -997,7 +995,7 @@ const CaseManagement = ({ cases, clients, onRefresh }) => {
       </div>
 
       {/* Cases Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="rounded-xl shadow-lg overflow-hidden" style={{backgroundColor: '#111828'}}>
         {filteredCases.length === 0 ? (
           <div className="p-12 text-center">
             <img 
@@ -1033,9 +1031,9 @@ const CaseManagement = ({ cases, clients, onRefresh }) => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-600" style={{backgroundColor: '#111828'}}>
                 {filteredCases.map(case_ => (
-                  <tr key={case_.id} className="hover:bg-gray-50">
+                  <tr key={case_.id} className="hover:bg-gray-700">
                     <td className="px-6 py-4">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
@@ -1179,7 +1177,7 @@ const DocumentManagement = ({ clients, documents, onRefresh }) => {
       <h2 className="text-2xl font-bold text-gray-900">Gestión de Documentos</h2>
 
       {/* Upload Form */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+      <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Subir Nuevo Documento</h3>
         <form onSubmit={handleFileUpload} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1244,7 +1242,7 @@ const DocumentManagement = ({ clients, documents, onRefresh }) => {
       </div>
 
       {/* Filter */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+      <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
         <div className="max-w-md">
           <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por Cliente</label>
           <select
@@ -1263,7 +1261,7 @@ const DocumentManagement = ({ clients, documents, onRefresh }) => {
       </div>
 
       {/* Documents List */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="rounded-xl shadow-lg overflow-hidden" style={{backgroundColor: '#111828'}}>
         {filteredDocuments.length === 0 ? (
           <div className="p-12 text-center">
             <img 
@@ -1299,9 +1297,9 @@ const DocumentManagement = ({ clients, documents, onRefresh }) => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-600" style={{backgroundColor: '#111828'}}>
                 {filteredDocuments.map(document => (
-                  <tr key={document.id} className="hover:bg-gray-50">
+                  <tr key={document.id} className="hover:bg-gray-700">
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
@@ -1461,7 +1459,7 @@ const AppointmentManagement = ({ appointments, clients, onRefresh }) => {
           </button>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-lg">
+        <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -1594,7 +1592,7 @@ const AppointmentManagement = ({ appointments, clients, onRefresh }) => {
       </div>
 
       {/* Filter */}
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+      <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
         <div className="flex items-center space-x-4">
           <label className="flex items-center">
             <input
@@ -1609,7 +1607,7 @@ const AppointmentManagement = ({ appointments, clients, onRefresh }) => {
       </div>
 
       {/* Appointments List */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="rounded-xl shadow-lg overflow-hidden" style={{backgroundColor: '#111828'}}>
         {filteredAppointments.length === 0 ? (
           <div className="p-12 text-center">
             <div className="text-6xl mb-4">📅</div>
@@ -1641,9 +1639,9 @@ const AppointmentManagement = ({ appointments, clients, onRefresh }) => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-600" style={{backgroundColor: '#111828'}}>
                 {filteredAppointments.map(appointment => (
-                  <tr key={appointment.id} className="hover:bg-gray-50">
+                  <tr key={appointment.id} className="hover:bg-gray-700">
                     <td className="px-6 py-4">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
@@ -1711,6 +1709,14 @@ const ClientLogin = ({ onLogin }) => {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [rehydrating, setRehydrating] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('clientSession');
+      if (stored) setRehydrating(true);
+    } catch (e) {}
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -1728,8 +1734,8 @@ const ClientLogin = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+    <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#111828'}}>
+      <div className="max-w-md w-full rounded-xl shadow-lg p-8" style={{backgroundColor: '#111828'}}>
         <div className="text-center mb-8">
           <img 
             src="https://images.unsplash.com/photo-1662104935883-e9dd0619eaba" 
@@ -1738,6 +1744,11 @@ const ClientLogin = ({ onLogin }) => {
           />
           <h2 className="text-2xl font-bold text-gray-900">Portal del Cliente</h2>
           <p className="text-gray-600">Accede para ver el estado de tus casos</p>
+          {rehydrating && (
+            <div className="mt-3 text-sm text-blue-700 bg-blue-50 p-3 rounded-lg">
+              Sesión detectada, restaurando...
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
@@ -1843,7 +1854,7 @@ const ClientDashboard = ({ clientData, onLogout }) => {
       <div className="min-h-screen bg-gray-100 p-6">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
+      <div className="rounded-xl p-6 shadow-lg mb-6" style={{backgroundColor: '#111828'}}>
             <div className="flex items-center justify-between">
               <div>
                 <button
@@ -1866,8 +1877,8 @@ const ClientDashboard = ({ clientData, onLogout }) => {
 
           {/* Case Details */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="font-semibold text-gray-900 mb-3">Información del Caso</h3>
+            <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+              <h3 className="font-semibold text-gray-300 mb-3">Información del Caso</h3>
               <div className="space-y-2 text-sm">
                 <p><span className="font-medium">Tipo:</span> {caseTimeline.case.case_type}</p>
                 <p><span className="font-medium">Fecha Inicio:</span> {formatDate(caseTimeline.case.start_date)}</p>
@@ -1880,8 +1891,8 @@ const ClientDashboard = ({ clientData, onLogout }) => {
               </div>
             </div>
             
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="font-semibold text-gray-900 mb-3">Próximas Citas</h3>
+            <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+              <h3 className="font-semibold text-gray-300 mb-3">Próximas Citas</h3>
               {caseTimeline.appointments.length === 0 ? (
                 <p className="text-gray-500 text-sm">No hay citas programadas</p>
               ) : (
@@ -1896,16 +1907,16 @@ const ClientDashboard = ({ clientData, onLogout }) => {
               )}
             </div>
             
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="font-semibold text-gray-900 mb-3">Documentos</h3>
+            <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+              <h3 className="font-semibold text-gray-300 mb-3">Documentos</h3>
               <p className="text-2xl font-bold text-blue-600 mb-2">{caseTimeline.documents.length}</p>
               <p className="text-gray-600 text-sm">documentos disponibles</p>
             </div>
           </div>
 
           {/* Timeline */}
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Historial y Avances del Caso</h3>
+          <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+            <h3 className="text-lg font-semibold text-gray-300 mb-6">Historial y Avances del Caso</h3>
             
             {loadingTimeline ? (
               <div className="text-center py-8">
@@ -1941,7 +1952,7 @@ const ClientDashboard = ({ clientData, onLogout }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen p-6" style={{backgroundColor: '#111828'}}>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-xl p-8 text-white mb-6">
@@ -1963,28 +1974,28 @@ const ClientDashboard = ({ clientData, onLogout }) => {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-lg text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-2">{clientData.active_cases.length}</div>
-            <div className="text-gray-600">Casos Activos</div>
+          <div className="rounded-xl p-6 shadow-lg text-center" style={{backgroundColor: '#111828'}}>
+            <div className="text-3xl font-bold text-blue-400 mb-2">{clientData.active_cases.length}</div>
+            <div className="text-gray-300">Casos Activos</div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-lg text-center">
-            <div className="text-3xl font-bold text-green-600 mb-2">{clientData.recent_updates.length}</div>
-            <div className="text-gray-600">Actualizaciones</div>
+          <div className="rounded-xl p-6 shadow-lg text-center" style={{backgroundColor: '#111828'}}>
+            <div className="text-3xl font-bold text-green-400 mb-2">{clientData.recent_updates.length}</div>
+            <div className="text-gray-300">Actualizaciones</div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-lg text-center">
-            <div className="text-3xl font-bold text-purple-600 mb-2">{clientData.upcoming_appointments.length}</div>
-            <div className="text-gray-600">Citas Próximas</div>
+          <div className="rounded-xl p-6 shadow-lg text-center" style={{backgroundColor: '#111828'}}>
+            <div className="text-3xl font-bold text-purple-400 mb-2">{clientData.upcoming_appointments.length}</div>
+            <div className="text-gray-300">Citas Próximas</div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-lg text-center">
-            <div className="text-3xl font-bold text-orange-600 mb-2">{clientData.total_documents}</div>
-            <div className="text-gray-600">Documentos</div>
+          <div className="rounded-xl p-6 shadow-lg text-center" style={{backgroundColor: '#111828'}}>
+            <div className="text-3xl font-bold text-orange-400 mb-2">{clientData.total_documents}</div>
+            <div className="text-gray-300">Documentos</div>
           </div>
         </div>
 
         {/* Active Cases */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Mis Casos Activos</h2>
+          <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+            <h2 className="text-xl font-bold text-gray-300 mb-4">Mis Casos Activos</h2>
             {clientData.active_cases.length === 0 ? (
               <p className="text-gray-500">No tienes casos activos</p>
             ) : (
@@ -2017,8 +2028,8 @@ const ClientDashboard = ({ clientData, onLogout }) => {
           </div>
 
           {/* Recent Updates */}
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Actualizaciones Recientes</h2>
+          <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+            <h2 className="text-xl font-bold text-gray-300 mb-4">Actualizaciones Recientes</h2>
             {clientData.recent_updates.length === 0 ? (
               <p className="text-gray-500">No hay actualizaciones recientes</p>
             ) : (
@@ -2039,8 +2050,8 @@ const ClientDashboard = ({ clientData, onLogout }) => {
         </div>
 
         {/* Upcoming Appointments */}
-        <div className="bg-white rounded-xl p-6 shadow-lg">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Próximas Citas</h2>
+        <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+          <h2 className="text-xl font-bold text-gray-300 mb-4">Próximas Citas</h2>
           {clientData.upcoming_appointments.length === 0 ? (
             <p className="text-gray-500">No tienes citas programadas</p>
           ) : (
@@ -2126,8 +2137,8 @@ const CaseUpdateManagement = ({ cases, clients, onRefresh }) => {
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-xl p-6 shadow-lg">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Crear Actualización de Caso</h3>
+        <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+          <h3 className="text-lg font-medium text-gray-300 mb-4">Crear Actualización de Caso</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -2220,8 +2231,8 @@ const CaseUpdateManagement = ({ cases, clients, onRefresh }) => {
         </div>
       )}
 
-      <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Portal del Cliente</h3>
+      <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+        <h3 className="text-lg font-medium text-gray-300 mb-4">Portal del Cliente</h3>
         <p className="text-gray-600 mb-4">
           Los clientes pueden acceder a su portal usando su email y teléfono registrados en:
         </p>
@@ -2246,23 +2257,29 @@ function App() {
   const [cases, setCases] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [appointments, setAppointments] = useState([]);
+  const [caseUpdates, setCaseUpdates] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Client Portal State
   const [isClientPortal, setIsClientPortal] = useState(false);
   const [clientSession, setClientSession] = useState(null);
   const [clientDashboardData, setClientDashboardData] = useState(null);
+  
+  // Header Controls State
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Fetch all data
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [statsRes, clientsRes, casesRes, documentsRes, appointmentsRes] = await Promise.all([
+      const [statsRes, clientsRes, casesRes, documentsRes, appointmentsRes, updatesRes] = await Promise.all([
         axios.get(`${API}/dashboard/stats`),
         axios.get(`${API}/clients`),
         axios.get(`${API}/cases`),
         axios.get(`${API}/documents`),
-        axios.get(`${API}/appointments`)
+        axios.get(`${API}/appointments`),
+        axios.get(`${API}/case-updates`)
       ]);
       
       setStats(statsRes.data);
@@ -2270,6 +2287,7 @@ function App() {
       setCases(casesRes.data);
       setDocuments(documentsRes.data);
       setAppointments(appointmentsRes.data);
+      setCaseUpdates(updatesRes.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -2281,30 +2299,61 @@ function App() {
   const handleClientLogin = async (loginData) => {
     try {
       setClientSession(loginData);
+      // Persistir sesión
+      localStorage.setItem('clientSession', JSON.stringify(loginData));
       
       // Fetch client dashboard data
       const response = await axios.get(`${API}/client/dashboard/${loginData.client_id}`);
       setClientDashboardData(response.data);
       setIsClientPortal(true);
+
+      // Redirigir/asegurar ruta /client
+      if (!window.location.pathname.includes('/client')) {
+        window.history.replaceState(null, '', '/client');
+      }
     } catch (error) {
       console.error('Error loading client dashboard:', error);
     }
   };
 
   const handleClientLogout = () => {
+    // Limpiar sesión persistida
+    localStorage.removeItem('clientSession');
     setClientSession(null);
     setClientDashboardData(null);
-    setIsClientPortal(false);
+    // Mantener en portal del cliente si ya está en /client
+    if (window.location.pathname.includes('/client')) {
+      setIsClientPortal(true);
+    } else {
+      setIsClientPortal(false);
+    }
   };
 
   useEffect(() => {
-    // Check if URL contains /client to show client portal
-    if (window.location.pathname.includes('/client')) {
-      setIsClientPortal(true);
-      setLoading(false);
-    } else {
-      fetchData();
-    }
+    const init = async () => {
+      const onClient = window.location.pathname.includes('/client');
+      if (onClient) {
+        setIsClientPortal(true);
+        const stored = localStorage.getItem('clientSession');
+        if (stored) {
+          try {
+            const sess = JSON.parse(stored);
+            setClientSession(sess);
+            const response = await axios.get(`${API}/client/dashboard/${sess.client_id}`);
+            setClientDashboardData(response.data);
+          } catch (error) {
+            console.error('Error loading client dashboard:', error);
+          } finally {
+            setLoading(false);
+          }
+        } else {
+          setLoading(false);
+        }
+      } else {
+        fetchData();
+      }
+    };
+    init();
   }, []);
 
   if (loading) {
@@ -2321,7 +2370,7 @@ function App() {
   const renderContent = () => {
     switch (activeSection) {
       case 'dashboard':
-        return <Dashboard stats={stats} clients={clients} cases={cases} appointments={appointments} />;
+        return <Dashboard stats={stats} clients={clients} cases={cases} appointments={appointments} caseUpdates={caseUpdates} />;
       case 'clients':
         return <ClientManagement clients={clients} onRefresh={fetchData} />;
       case 'cases':
@@ -2345,7 +2394,7 @@ function App() {
     
     if (!clientDashboardData) {
       return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#111828'}}>
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Cargando su información...</p>
@@ -2359,10 +2408,67 @@ function App() {
 
   // Lawyer Admin Interface
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
-      <main className="flex-1 p-8 overflow-y-auto">
-        {renderContent()}
+    <div className="min-h-screen app-layout" style={{backgroundColor: '#000000'}}>
+      <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} isCollapsed={!isSidebarOpen} />
+      <main className={`main-content overflow-y-auto ${!isSidebarOpen ? 'sidebar-collapsed' : ''}`}>
+        {/* Search Bar Container con Toggle y Portal - Fuera del contenedor con padding */}
+           <div className="search-bar-container">
+             {/* Toggle y mensaje de saludo juntos */}
+             <div className="flex items-center gap-3">
+               {/* Sidebar Toggle */}
+               <button
+                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                 className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 title={isSidebarOpen ? "Ocultar sidebar" : "Mostrar sidebar"}
+               >
+                 <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                 </svg>
+               </button>
+               
+               {/* Mensaje de saludo */}
+               <div className="text-white font-bold text-lg">
+                 HOLA, HECTOR
+               </div>
+             </div>
+           
+           {/* Contenedor para buscador y botón del portal */}
+           <div className="flex items-center gap-4">
+             <div className="relative">
+               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                 <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                 </svg>
+               </div>
+               <input
+                 type="text"
+                 placeholder="Buscar clientes, casos, documentos..."
+                 value={searchTerm}
+                 onChange={(e) => setSearchTerm(e.target.value)}
+                 className="block w-full pl-10 pr-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                 style={{minWidth: '300px'}}
+               />
+             </div>
+             
+             <button
+                 onClick={() => { window.location.href = '/client'; }}
+                 className="btn-primary text-black"
+                 style={{backgroundColor: '#F8C61E'}}
+                 title="Abrir portal del cliente"
+                 onMouseEnter={(e) => e.target.style.backgroundColor = '#E6B31A'}
+                 onMouseLeave={(e) => e.target.style.backgroundColor = '#F8C61E'}
+               >
+                 Portal Cliente
+               </button>
+           </div>
+         </div>
+
+        {/* Contenido principal con padding */}
+        <div className="p-8">
+          <div className="max-w-7xl mx-auto">
+            {renderContent()}
+          </div>
+        </div>
       </main>
     </div>
   );

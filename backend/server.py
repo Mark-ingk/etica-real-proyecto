@@ -23,7 +23,7 @@ uploads_dir.mkdir(exist_ok=True)
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[os.environ.get('DB_NAME', 'legaldesk')]
 
 # Create the main app without a prefix
 app = FastAPI()
@@ -774,6 +774,46 @@ async def get_case_timeline(client_id: str, case_id: str):
         }
     except HTTPException:
         raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Admin: migrar datos de dashboard_etica a legaldesk
+@api_router.post("/admin/migrate-dashboard-to-legaldesk")
+async def admin_migrate_dashboard_to_legaldesk(source_db: str = "dashboard_etica", target_db: str = "legaldesk"):
+    try:
+        aux_client = AsyncIOMotorClient(os.environ['MONGO_URL'])
+        src = aux_client[source_db]
+        tgt = aux_client[target_db]
+        collections = ["clients", "cases", "documents", "appointments", "case_updates"]
+        results = {}
+
+        async def migrate_collection(src_col, tgt_col):
+            migrated = 0
+            async for doc in src_col.find({}):
+                filter_doc = {"id": doc["id"]} if "id" in doc else {"_id": doc.get("_id")}
+                await tgt_col.replace_one(filter_doc, doc, upsert=True)
+                migrated += 1
+            return migrated
+
+        for name in collections:
+            src_col = src[name]
+            tgt_col = tgt[name]
+            source_count = await src_col.count_documents({})
+            migrated = await migrate_collection(src_col, tgt_col)
+            target_count = await tgt_col.count_documents({})
+            results[name] = {
+                "source_count": source_count,
+                "migrated": migrated,
+                "target_count": target_count,
+            }
+
+        aux_client.close()
+        return {
+            "status": "ok",
+            "source_db": source_db,
+            "target_db": target_db,
+            "collections": results,
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

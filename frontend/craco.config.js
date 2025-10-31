@@ -6,6 +6,12 @@ const config = {
   disableHotReload: process.env.DISABLE_HOT_RELOAD === 'true',
 };
 
+// Polyfill for Node.js v22 compatibility
+process.env.NODE_OPTIONS = process.env.NODE_OPTIONS || '';
+if (!process.env.NODE_OPTIONS.includes('--openssl-legacy-provider')) {
+  process.env.NODE_OPTIONS += ' --openssl-legacy-provider';
+}
+
 module.exports = {
   webpack: {
     alias: {

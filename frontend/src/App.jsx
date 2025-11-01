@@ -63,35 +63,50 @@ const Dashboard = ({ stats, clients, cases, appointments, caseUpdates }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Side - Stats Cards and Main Content Area */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Stats Cards - Square Design */}
+          {/* Stats Cards - Modern Design */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="rounded-xl p-8 shadow-lg border border-gray-600" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', minHeight: '140px', backdropFilter: 'blur(10px)'}}>
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <div className="bg-blue-100 p-4 rounded-full mb-4">
-                  <span className="text-2xl">👥</span>
+            <div className="group rounded-2xl p-6 shadow-2xl border border-blue-500/20 relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-blue-500/25 cursor-pointer" style={{background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(30, 64, 175, 0.05) 50%, rgba(20, 20, 20, 0.9) 100%)', minHeight: '140px', backdropFilter: 'blur(15px)'}}>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="flex items-start gap-3 pt-2 relative z-10">
+                <div className="bg-gradient-to-br from-blue-400 to-blue-600 p-3 rounded-2xl w-12 h-12 flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-blue-500/50 transition-all duration-300">
+                  <ion-icon name="people-outline" style={{fontSize: '1.4rem', color: 'white'}}></ion-icon>
                 </div>
-                <p className="text-sm font-medium text-gray-300 mb-2">Total Clientes</p>
-                <p className="text-3xl font-bold text-blue-400">{stats.total_clients || 0}</p>
+                <div className="flex-1">
+                  <p className="text-xl font-medium text-gray-300 mb-10 group-hover:text-white transition-colors duration-300">Total Clientes</p>
+                  <div className="flex justify-start ml-6">
+                    <p className="text-5xl font-bold bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-blue-200 transition-all duration-300">{stats.total_clients || 0}</p>
+                  </div>
+                </div>
               </div>
             </div>
             
-            <div className="rounded-xl p-8 shadow-lg border border-gray-600" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', minHeight: '140px', backdropFilter: 'blur(10px)'}}>
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <div className="bg-green-100 p-4 rounded-full mb-4">
-                  <span className="text-2xl">📁</span>
+            <div className="group rounded-2xl p-6 shadow-2xl border border-green-500/20 relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-green-500/25 cursor-pointer" style={{background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.05) 50%, rgba(20, 20, 20, 0.9) 100%)', minHeight: '140px', backdropFilter: 'blur(15px)'}}>
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="flex items-start gap-3 pt-2 relative z-10">
+                <div className="bg-gradient-to-br from-green-400 to-green-600 p-3 rounded-2xl w-12 h-12 flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-green-500/50 transition-all duration-300">
+                  <ion-icon name="folder-outline" style={{fontSize: '1.4rem', color: 'white'}}></ion-icon>
                 </div>
-                <p className="text-sm font-medium text-gray-300 mb-2">Casos Activos</p>
-                <p className="text-3xl font-bold text-green-400">{stats.active_cases || 0}</p>
+                <div className="flex-1">
+                  <p className="text-xl font-medium text-gray-300 mb-10 group-hover:text-white transition-colors duration-300">Casos Activos</p>
+                  <div className="flex justify-start ml-6">
+                    <p className="text-5xl font-bold bg-gradient-to-r from-green-400 to-green-300 bg-clip-text text-transparent group-hover:from-green-300 group-hover:to-green-200 transition-all duration-300">{stats.active_cases || 0}</p>
+                  </div>
+                </div>
               </div>
             </div>
             
-            <div className="rounded-xl p-8 shadow-lg border border-gray-600" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', minHeight: '140px', backdropFilter: 'blur(10px)'}}>
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <div className="bg-orange-100 p-4 rounded-full mb-4">
-                  <span className="text-2xl">📄</span>
+            <div className="group rounded-2xl p-6 shadow-2xl border border-orange-500/20 relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-orange-500/25 cursor-pointer" style={{background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(234, 88, 12, 0.05) 50%, rgba(20, 20, 20, 0.9) 100%)', minHeight: '140px', backdropFilter: 'blur(15px)'}}>
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="flex items-start gap-3 pt-2 relative z-10">
+                <div className="bg-gradient-to-br from-orange-400 to-orange-600 p-3 rounded-2xl w-12 h-12 flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-orange-500/50 transition-all duration-300">
+                  <ion-icon name="document-text-outline" style={{fontSize: '1.4rem', color: 'white'}}></ion-icon>
                 </div>
-                <p className="text-sm font-medium text-gray-300 mb-2">Documentos</p>
-                <p className="text-3xl font-bold text-orange-400">{stats.total_documents || 0}</p>
+                <div className="flex-1">
+                  <p className="text-xl font-medium text-gray-300 mb-10 group-hover:text-white transition-colors duration-300">Documentos</p>
+                  <div className="flex justify-start ml-6">
+                    <p className="text-5xl font-bold bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent group-hover:from-orange-300 group-hover:to-orange-200 transition-all duration-300">{stats.total_documents || 0}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1974,21 +1989,61 @@ const ClientDashboard = ({ clientData, onLogout }) => {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="rounded-xl p-6 shadow-lg text-center" style={{backgroundColor: '#111828'}}>
-            <div className="text-3xl font-bold text-blue-400 mb-2">{clientData.active_cases.length}</div>
-            <div className="text-gray-300">Casos Activos</div>
+          <div className="group rounded-2xl p-6 shadow-2xl border border-blue-500/20 relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-blue-500/25 cursor-pointer" style={{background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(30, 64, 175, 0.05) 50%, rgba(17, 24, 40, 0.9) 100%)', minHeight: '120px', backdropFilter: 'blur(15px)'}}>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="flex items-start gap-3 pt-2 relative z-10">
+              <div className="bg-gradient-to-br from-blue-400 to-blue-600 p-2 rounded-2xl w-10 h-10 flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-blue-500/50 transition-all duration-300">
+                <ion-icon name="folder-outline" style={{fontSize: '1.2rem', color: 'white'}}></ion-icon>
+              </div>
+              <div className="flex-1">
+                <div className="text-xl text-gray-300 mb-9 group-hover:text-white transition-colors duration-300">Casos Activos</div>
+                <div className="flex justify-start ml-6">
+                  <div className="text-5xl font-bold bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-blue-200 transition-all duration-300">{clientData.active_cases.length}</div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="rounded-xl p-6 shadow-lg text-center" style={{backgroundColor: '#111828'}}>
-            <div className="text-3xl font-bold text-green-400 mb-2">{clientData.recent_updates.length}</div>
-            <div className="text-gray-300">Actualizaciones</div>
+          <div className="group rounded-2xl p-6 shadow-2xl border border-green-500/20 relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-green-500/25 cursor-pointer" style={{background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.05) 50%, rgba(17, 24, 40, 0.9) 100%)', minHeight: '120px', backdropFilter: 'blur(15px)'}}>
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="flex items-start gap-3 pt-2 relative z-10">
+              <div className="bg-gradient-to-br from-green-400 to-green-600 p-2 rounded-2xl w-10 h-10 flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-green-500/50 transition-all duration-300">
+                <ion-icon name="create-outline" style={{fontSize: '1.2rem', color: 'white'}}></ion-icon>
+              </div>
+              <div className="flex-1">
+                <div className="text-xl text-gray-300 mb-9 group-hover:text-white transition-colors duration-300">Actualizaciones</div>
+                <div className="flex justify-start ml-6">
+                  <div className="text-5xl font-bold bg-gradient-to-r from-green-400 to-green-300 bg-clip-text text-transparent group-hover:from-green-300 group-hover:to-green-200 transition-all duration-300">{clientData.recent_updates.length}</div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="rounded-xl p-6 shadow-lg text-center" style={{backgroundColor: '#111828'}}>
-            <div className="text-3xl font-bold text-purple-400 mb-2">{clientData.upcoming_appointments.length}</div>
-            <div className="text-gray-300">Citas Próximas</div>
+          <div className="group rounded-2xl p-6 shadow-2xl border border-purple-500/20 relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-purple-500/25 cursor-pointer" style={{background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(124, 58, 237, 0.05) 50%, rgba(17, 24, 40, 0.9) 100%)', minHeight: '120px', backdropFilter: 'blur(15px)'}}>
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="flex items-start gap-3 pt-2 relative z-10">
+              <div className="bg-gradient-to-br from-purple-400 to-purple-600 p-2 rounded-2xl w-10 h-10 flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-purple-500/50 transition-all duration-300">
+                <ion-icon name="calendar-outline" style={{fontSize: '1.2rem', color: 'white'}}></ion-icon>
+              </div>
+              <div className="flex-1">
+                <div className="text-xl text-gray-300 mb-9 group-hover:text-white transition-colors duration-300">Citas Próximas</div>
+                <div className="flex justify-start ml-6">
+                  <div className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-purple-300 bg-clip-text text-transparent group-hover:from-purple-300 group-hover:to-purple-200 transition-all duration-300">{clientData.upcoming_appointments.length}</div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="rounded-xl p-6 shadow-lg text-center" style={{backgroundColor: '#111828'}}>
-            <div className="text-3xl font-bold text-orange-400 mb-2">{clientData.total_documents}</div>
-            <div className="text-gray-300">Documentos</div>
+          <div className="group rounded-2xl p-6 shadow-2xl border border-orange-500/20 relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-orange-500/25 cursor-pointer" style={{background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(234, 88, 12, 0.05) 50%, rgba(17, 24, 40, 0.9) 100%)', minHeight: '120px', backdropFilter: 'blur(15px)'}}>
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="flex items-start gap-3 pt-2 relative z-10">
+              <div className="bg-gradient-to-br from-orange-400 to-orange-600 p-2 rounded-2xl w-10 h-10 flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-orange-500/50 transition-all duration-300">
+                <ion-icon name="document-text-outline" style={{fontSize: '1.2rem', color: 'white'}}></ion-icon>
+              </div>
+              <div className="flex-1">
+                <div className="text-xl text-gray-300 mb-9 group-hover:text-white transition-colors duration-300">Documentos</div>
+                <div className="flex justify-start ml-6">
+                  <div className="text-5xl font-bold bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent group-hover:from-orange-300 group-hover:to-orange-200 transition-all duration-300">{clientData.total_documents}</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

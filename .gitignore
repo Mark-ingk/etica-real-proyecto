@@ -48,6 +48,12 @@ backend/uploads/*
 
 # Archivos de base de datos locales
 *.db
+
+# Archivos de prueba (mantener solo localmente)
+backend_test.py
+workflow_test.py
+test_result.md
+tests/
 *.sqlite
 *.sqlite3
 

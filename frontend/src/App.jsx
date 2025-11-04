@@ -1,8 +1,18 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import './App.css';
 import axios from 'axios';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = (() => {
+  if (typeof window !== 'undefined' && window.__BACKEND_URL__) return window.__BACKEND_URL__;
+  if (typeof process !== 'undefined' && process.env && process.env.VITE_BACKEND_URL) return process.env.VITE_BACKEND_URL;
+  try {
+    // Read Vite env without breaking Jest by evaluating at runtime
+    // eslint-disable-next-line no-new-func
+    const val = new Function('return (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_BACKEND_URL)')();
+    if (val) return val;
+  } catch {}
+  return 'http://localhost:8000';
+})();
 const API = `${BACKEND_URL}/api`;
 
 // Navigation Component
@@ -65,45 +75,55 @@ const Dashboard = ({ stats, clients, cases, appointments, caseUpdates }) => {
         <div className="lg:col-span-2 space-y-6">
           {/* Stats Cards - Square Design */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="rounded-xl p-8 shadow-lg border border-gray-600" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', minHeight: '140px', backdropFilter: 'blur(10px)'}}>
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <div className="bg-blue-100 p-4 rounded-full mb-4">
-                  <span className="text-2xl">👥</span>
+            <div className="rounded-xl px-6 py-8 shadow-lg border-2 border-gray-700 overflow-hidden" style={{backgroundColor: '#f3bd59', minHeight: '140px', backdropFilter: 'blur(10px)'}}>
+              <div className="relative flex flex-col h-full">
+                <div className="flex items-center gap-3 mb-3 min-w-0">
+                  <div className="bg-black w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <ion-icon name="people-outline" style={{fontSize: '1.4rem', color: 'white'}}></ion-icon>
+                  </div>
+                  <p className="text-lg font-semibold text-black whitespace-normal break-words leading-tight flex-1 min-w-0">Total Clientes</p>
                 </div>
-                <p className="text-sm font-medium text-gray-300 mb-2">Total Clientes</p>
-                <p className="text-3xl font-bold text-blue-400">{stats.total_clients || 0}</p>
+                <p className="text-5xl font-bold text-black mt-auto mb-2 self-center text-center">{stats.total_clients || 0}</p>
               </div>
             </div>
             
-            <div className="rounded-xl p-8 shadow-lg border border-gray-600" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', minHeight: '140px', backdropFilter: 'blur(10px)'}}>
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <div className="bg-green-100 p-4 rounded-full mb-4">
-                  <span className="text-2xl">📁</span>
+            <div className="rounded-xl px-6 py-8 shadow-lg border-2 border-gray-700 overflow-hidden" style={{backgroundColor: '#b07fea', minHeight: '140px', backdropFilter: 'blur(10px)'}}>
+              <div className="relative flex flex-col h-full">
+                <div className="flex items-center gap-3 mb-3 min-w-0">
+                  <div className="bg-black w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <ion-icon name="folder-outline" style={{fontSize: '1.4rem', color: 'white'}}></ion-icon>
+                  </div>
+                  <p className="text-lg font-semibold text-black whitespace-normal break-words leading-tight flex-1 min-w-0">Casos Activos</p>
                 </div>
-                <p className="text-sm font-medium text-gray-300 mb-2">Casos Activos</p>
-                <p className="text-3xl font-bold text-green-400">{stats.active_cases || 0}</p>
+                <p className="text-5xl font-bold text-black mt-auto mb-2 self-center text-center">{stats.active_cases || 0}</p>
               </div>
             </div>
             
-            <div className="rounded-xl p-8 shadow-lg border border-gray-600" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', minHeight: '140px', backdropFilter: 'blur(10px)'}}>
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <div className="bg-orange-100 p-4 rounded-full mb-4">
-                  <span className="text-2xl">📄</span>
+            <div className="rounded-xl p-8 shadow-lg border-2 border-gray-700" style={{backgroundColor: '#d0e890', minHeight: '140px', backdropFilter: 'blur(10px)'}}>
+              <div className="relative flex flex-col h-full">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="bg-black w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <ion-icon name="document-text-outline" style={{fontSize: '1.4rem', color: 'white'}}></ion-icon>
+                  </div>
+                  <p className="text-lg font-semibold text-black whitespace-nowrap">Documentos</p>
                 </div>
-                <p className="text-sm font-medium text-gray-300 mb-2">Documentos</p>
-                <p className="text-3xl font-bold text-orange-400">{stats.total_documents || 0}</p>
+                <p className="text-5xl font-bold text-black mt-auto mb-2 self-center text-center">{stats.total_documents || 0}</p>
               </div>
             </div>
           </div>
 
           {/* Recent Cases */}
-          <div className="rounded-xl p-4 shadow-lg border border-gray-600" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', backdropFilter: 'blur(10px)'}}>
-            <h3 className="text-lg font-semibold text-gray-300 mb-4">Casos Recientes</h3>
+          <div className="rounded-xl p-[15px] shadow-lg border-2 border-gray-700" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', backdropFilter: 'blur(10px)'}}>
+            <h3 className="text-2xl font-semibold text-gray-300 mb-[15px]">Casos Recientes</h3>
             <div className="space-y-3">
               {cases.slice(0, 5).map(case_ => (
-                <div key={case_.id} className="p-3 rounded-lg" style={{backgroundColor: 'rgba(31, 41, 55, 0.6)', backdropFilter: 'blur(5px)'}}>
+                <div
+                  key={case_.id}
+                  className="p-3 rounded-lg border border-gray-700 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl"
+                  style={{ backgroundColor: '#191919', backdropFilter: 'blur(5px)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 6px 14px rgba(0,0,0,0.45)' }}
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <p className="font-medium text-gray-200">{case_.title}</p>
+                    <p className="text-lg font-semibold text-gray-200">{case_.title}</p>
                     <span className={`px-2 py-1 text-xs rounded-full ${
                       case_.status === 'active' ? 'bg-green-100 text-green-800' :
                       case_.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -120,38 +140,46 @@ const Dashboard = ({ stats, clients, cases, appointments, caseUpdates }) => {
           </div>
 
           {/* Historial de Actualizaciones */}
-          <div className="rounded-xl p-4 shadow-lg border border-gray-600" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', backdropFilter: 'blur(10px)'}}>
-            <h3 className="text-lg font-semibold text-gray-300 mb-4">Historial de Actualizaciones</h3>
-            {caseUpdates && caseUpdates.length > 0 ? (
-              <div className="space-y-4">
-                {caseUpdates.slice(0, 10).map(update => (
-                  <div key={update.id} className="border-l-4 border-blue-500 pl-4">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="text-lg">{getUpdateTypeIcon(update.update_type)}</span>
-                      <h4 className="font-medium text-gray-200 text-sm">{update.title}</h4>
+          <div className="rounded-xl shadow-lg overflow-hidden border-2 border-gray-700" style={{backgroundColor: '#191919'}}>
+            <div className="bg-[#111111] px-6 py-3">
+              <h3 className="text-lg font-semibold text-gray-300">Historial de Actualizaciones</h3>
+            </div>
+            <div className="p-6">
+              {caseUpdates && caseUpdates.length > 0 ? (
+                <div className="space-y-4">
+                  {caseUpdates.slice(0, 10).map(update => (
+                    <div key={update.id} className="border-l-4 border-blue-500 pl-4">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="text-lg">{getUpdateTypeIcon(update.update_type)}</span>
+                        <h4 className="font-medium text-gray-200 text-sm">{update.title}</h4>
+                      </div>
+                      {update.description && (
+                        <p className="text-sm text-gray-400 mb-1">{update.description}</p>
+                      )}
+                      <p className="text-xs text-gray-500">{formatDate(update.created_at)}</p>
                     </div>
-                    {update.description && (
-                      <p className="text-sm text-gray-400 mb-1">{update.description}</p>
-                    )}
-                    <p className="text-xs text-gray-500">{formatDate(update.created_at)}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-400 text-sm">No hay actualizaciones registradas todavía</p>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-400 text-sm">No hay actualizaciones registradas todavía</p>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Right Side - Clientes Recientes */}
         <div className="lg:col-span-1">
-          <div className="rounded-xl p-8 shadow-lg h-full border border-gray-600" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', backdropFilter: 'blur(10px)', minHeight: '85vh'}}>
-            <h3 className="text-xl font-semibold text-gray-300 mb-6">Clientes Recientes</h3>
+          <div className="rounded-xl p-[15px] shadow-lg h-full border-2 border-gray-700" style={{backgroundColor: 'rgba(20, 20, 20, 0.7)', backdropFilter: 'blur(10px)', minHeight: '85vh'}}>
+            <h3 className="text-2xl font-semibold text-gray-300 mb-[15px]">Clientes Recientes</h3>
             <div className="space-y-3 overflow-y-auto" style={{maxHeight: 'calc(85vh - 120px)'}}>
               {clients.slice(0, 15).map(client => (
-                <div key={client.id} className="p-3 rounded-lg" style={{backgroundColor: 'rgba(31, 41, 55, 0.6)', backdropFilter: 'blur(5px)'}}>
+                <div
+                  key={client.id}
+                  className="p-3 rounded-lg border border-gray-700 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl"
+                  style={{ backgroundColor: '#191919', backdropFilter: 'blur(5px)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 6px 14px rgba(0,0,0,0.45)' }}
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <p className="font-medium text-gray-200">
+                    <p className="text-lg font-semibold text-gray-200">
                       {client.first_name} {client.last_name}
                     </p>
                     <span className={`px-2 py-1 text-xs rounded-full ${
@@ -264,18 +292,18 @@ const ClientManagement = ({ clients, onRefresh }) => {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-white">
             {editingClient ? 'Editar Cliente' : 'Nuevo Cliente'}
           </h2>
           <button
             onClick={resetForm}
-            className="px-4 py-2 text-gray-600 hover:text-gray-900"
+            className="px-4 py-2 text-white hover:text-gray-300"
           >
             ← Volver
           </button>
         </div>
 
-        <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+        <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111111'}}>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Personal Info */}
@@ -284,147 +312,147 @@ const ClientManagement = ({ clients, onRefresh }) => {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Nombre *</label>
                     <input
                       type="text"
                       required
                       value={formData.first_name}
                       onChange={(e) => setFormData({...formData, first_name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Apellidos *</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Apellidos *</label>
                     <input
                       type="text"
                       required
                       value={formData.last_name}
                       onChange={(e) => setFormData({...formData, last_name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Email *</label>
                   <input
                     type="email"
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Teléfono *</label>
                   <input
                     type="tel"
                     required
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Nacimiento</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Fecha de Nacimiento</label>
                   <input
                     type="date"
                     value={formData.date_of_birth}
                     onChange={(e) => setFormData({...formData, date_of_birth: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Ocupación</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Ocupación</label>
                   <input
                     type="text"
                     value={formData.occupation}
                     onChange={(e) => setFormData({...formData, occupation: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
 
               {/* Contact & Address Info */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Información de Contacto</h3>
+                <h3 className="text-lg font-medium text-gray-300">Información de Contacto</h3>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Dirección *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Dirección *</label>
                   <input
                     type="text"
                     required
                     value={formData.address}
                     onChange={(e) => setFormData({...formData, address: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Ciudad *</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Ciudad *</label>
                     <input
                       type="text"
                       required
                       value={formData.city}
                       onChange={(e) => setFormData({...formData, city: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Estado *</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Estado *</label>
                     <input
                       type="text"
                       required
                       value={formData.state}
                       onChange={(e) => setFormData({...formData, state: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Código Postal *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Código Postal *</label>
                   <input
                     type="text"
                     required
                     value={formData.postal_code}
                     onChange={(e) => setFormData({...formData, postal_code: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Contacto de Emergencia</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Contacto de Emergencia</label>
                   <input
                     type="text"
                     value={formData.emergency_contact}
                     onChange={(e) => setFormData({...formData, emergency_contact: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono de Emergencia</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Teléfono de Emergencia</label>
                   <input
                     type="tel"
                     value={formData.emergency_phone}
                     onChange={(e) => setFormData({...formData, emergency_phone: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Estado</label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({...formData, status: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="active">Activo</option>
                     <option value="inactive">Inactivo</option>
@@ -435,12 +463,12 @@ const ClientManagement = ({ clients, onRefresh }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Notas</label>
               <textarea
                 rows="3"
                 value={formData.notes}
                 onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Información adicional sobre el cliente..."
               ></textarea>
             </div>
@@ -471,17 +499,17 @@ const ClientManagement = ({ clients, onRefresh }) => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Gestión de Clientes</h2>
+        <h2 className="text-2xl font-bold text-gray-300">Gestión de Clientes</h2>
         <button
           onClick={() => setShowForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="btn-portal"
         >
           + Nuevo Cliente
         </button>
       </div>
 
       {/* Search and Filter */}
-      <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+      <div className="rounded-xl p-6 shadow-lg card-dark" style={{backgroundColor: '#191919'}}>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <input
@@ -489,7 +517,7 @@ const ClientManagement = ({ clients, onRefresh }) => {
               placeholder="Buscar clientes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           
@@ -497,7 +525,7 @@ const ClientManagement = ({ clients, onRefresh }) => {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">Todos los estados</option>
               <option value="active">Activo</option>
@@ -509,66 +537,66 @@ const ClientManagement = ({ clients, onRefresh }) => {
       </div>
 
       {/* Clients Table */}
-      <div className="rounded-xl shadow-lg overflow-hidden" style={{backgroundColor: '#111828'}}>
+      <div className="rounded-xl shadow-lg overflow-hidden border border-gray-600" style={{backgroundColor: '#0d0d0d'}}>
         {filteredClients.length === 0 ? (
-          <div className="p-12 text-center">
-            <img 
-              src="https://images.unsplash.com/photo-1662104935762-707db0439ecd" 
-              alt="No clients" 
-              className="mx-auto w-48 h-32 object-cover rounded-lg opacity-50 mb-4"
-            />
+          <div className="p-12 text-center rounded-lg border border-gray-700" style={{backgroundColor: '#191919'}}>
+            <ion-icon 
+              name="people-outline" 
+              className="text-7xl mb-4 text-gray-300"
+              style={{ color: '#d1d5db', '--ionicon-fill-color': '#d1d5db', '--ionicon-stroke-color': '#d1d5db', fontSize: '5rem' }}
+            ></ion-icon>
             <p className="text-gray-500 text-lg">No se encontraron clientes</p>
             <p className="text-gray-400">Comience agregando su primer cliente</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl p-0 shadow-lg border border-gray-600" style={{backgroundColor: '#191919'}}>
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-[#111111]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Cliente
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Contacto
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Ubicación
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Estado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-600" style={{backgroundColor: '#111828'}}>
+              <tbody className="divide-y divide-gray-600" style={{backgroundColor: '#191919'}}>
                 {filteredClients.map(client => (
-                  <tr key={client.id} className="hover:bg-gray-50">
+                  <tr key={client.id} className="transition">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <div className="flex items-center p-3 rounded-lg border border-gray-700 transition-all duration-200" style={{backgroundColor: '#191919', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 6px 14px rgba(0,0,0,0.45)'}}>
+                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                           <span className="text-blue-600 font-semibold">
                             {client.first_name?.charAt(0)}{client.last_name?.charAt(0)}
                           </span>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-lg font-semibold text-gray-200">
                             {client.first_name} {client.last_name}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-400">
                             {client.occupation || 'No especificado'}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{client.email}</div>
-                      <div className="text-sm text-gray-500">{client.phone}</div>
+                      <div className="text-sm text-gray-300">{client.email}</div>
+                      <div className="text-sm text-gray-400">{client.phone}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{client.city}, {client.state}</div>
-                      <div className="text-sm text-gray-500">{client.postal_code}</div>
+                      <div className="text-sm text-gray-300">{client.city}, {client.state}</div>
+                      <div className="text-sm text-gray-400">{client.postal_code}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -706,18 +734,18 @@ const CaseManagement = ({ cases, clients, onRefresh }) => {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-white">
             {editingCase ? 'Editar Caso' : 'Nuevo Caso'}
           </h2>
           <button
             onClick={resetForm}
-            className="px-4 py-2 text-gray-600 hover:text-gray-900"
+            className="px-4 py-2 text-white hover:text-gray-300"
           >
             ← Volver
           </button>
         </div>
 
-        <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+        <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111111'}}>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Basic Case Info */}
@@ -725,12 +753,12 @@ const CaseManagement = ({ cases, clients, onRefresh }) => {
                 <h3 className="text-lg font-medium text-gray-300">Información Básica</h3>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Cliente *</label>
                   <select
                     required
                     value={formData.client_id}
                     onChange={(e) => setFormData({...formData, client_id: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Seleccionar cliente</option>
                     {clients.map(client => (
@@ -742,34 +770,34 @@ const CaseManagement = ({ cases, clients, onRefresh }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Título del Caso *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Título del Caso *</label>
                   <input
                     type="text"
                     required
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Número de Caso *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Número de Caso *</label>
                   <input
                     type="text"
                     required
                     value={formData.case_number}
                     onChange={(e) => setFormData({...formData, case_number: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Caso</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Tipo de Caso</label>
                     <select
                       value={formData.case_type}
                       onChange={(e) => setFormData({...formData, case_type: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="civil">Civil</option>
                       <option value="criminal">Criminal</option>
@@ -782,11 +810,11 @@ const CaseManagement = ({ cases, clients, onRefresh }) => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Estado</label>
                     <select
                       value={formData.status}
                       onChange={(e) => setFormData({...formData, status: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="active">Activo</option>
                       <option value="pending">Pendiente</option>
@@ -797,78 +825,78 @@ const CaseManagement = ({ cases, clients, onRefresh }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Descripción</label>
                   <textarea
                     rows="3"
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   ></textarea>
                 </div>
               </div>
 
               {/* Dates and Court Info */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Fechas y Tribunal</h3>
+                <h3 className="text-lg font-medium text-gray-300">Fechas y Tribunal</h3>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Inicio *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Fecha de Inicio *</label>
                   <input
                     type="date"
                     required
                     value={formData.start_date}
                     onChange={(e) => setFormData({...formData, start_date: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Finalización</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Fecha de Finalización</label>
                   <input
                     type="date"
                     value={formData.end_date}
                     onChange={(e) => setFormData({...formData, end_date: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Próxima Audiencia</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Próxima Audiencia</label>
                   <input
                     type="date"
                     value={formData.next_hearing}
                     onChange={(e) => setFormData({...formData, next_hearing: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Tribunal</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Nombre del Tribunal</label>
                   <input
                     type="text"
                     value={formData.court_name}
                     onChange={(e) => setFormData({...formData, court_name: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Juez</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Nombre del Juez</label>
                   <input
                     type="text"
                     value={formData.judge_name}
                     onChange={(e) => setFormData({...formData, judge_name: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Parte Contraria</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Parte Contraria</label>
                   <input
                     type="text"
                     value={formData.opposing_party}
                     onChange={(e) => setFormData({...formData, opposing_party: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -876,50 +904,50 @@ const CaseManagement = ({ cases, clients, onRefresh }) => {
 
             {/* Financial Info */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Información Financiera</h3>
+              <h3 className="text-lg font-medium text-gray-300">Información Financiera</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Valor del Caso</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Valor del Caso</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formData.case_value}
                     onChange={(e) => setFormData({...formData, case_value: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tarifa por Hora</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Tarifa por Hora</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formData.hourly_rate}
                     onChange={(e) => setFormData({...formData, hourly_rate: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Horas Totales</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Horas Totales</label>
                   <input
                     type="number"
                     step="0.5"
                     value={formData.total_hours}
                     onChange={(e) => setFormData({...formData, total_hours: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Notas</label>
               <textarea
                 rows="3"
                 value={formData.notes}
                 onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               ></textarea>
             </div>
 
@@ -952,21 +980,21 @@ const CaseManagement = ({ cases, clients, onRefresh }) => {
         <h2 className="text-2xl font-bold text-gray-900">Gestión de Casos</h2>
         <button
           onClick={() => setShowForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="btn-portal"
         >
           + Nuevo Caso
         </button>
       </div>
 
       {/* Filters */}
-      <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+      <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#191919'}}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por Estado</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Filtrar por Estado</label>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">Todos los estados</option>
               <option value="active">Activo</option>
@@ -977,11 +1005,11 @@ const CaseManagement = ({ cases, clients, onRefresh }) => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por Cliente</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Filtrar por Cliente</label>
             <select
               value={filterClient}
               onChange={(e) => setFilterClient(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">Todos los clientes</option>
               {clients.map(client => (
@@ -995,57 +1023,57 @@ const CaseManagement = ({ cases, clients, onRefresh }) => {
       </div>
 
       {/* Cases Table */}
-      <div className="rounded-xl shadow-lg overflow-hidden" style={{backgroundColor: '#111828'}}>
+      <div className="rounded-xl shadow-lg overflow-hidden border border-gray-600" style={{backgroundColor: '#0d0d0d'}}>
         {filteredCases.length === 0 ? (
-          <div className="p-12 text-center">
-            <img 
-              src="https://images.unsplash.com/photo-1613155961736-d0782a58f170" 
-              alt="No cases" 
-              className="mx-auto w-48 h-32 object-cover rounded-lg opacity-50 mb-4"
-            />
+          <div className="p-12 text-center rounded-lg border border-gray-700" style={{backgroundColor: '#191919'}}>
+            <ion-icon 
+              name="briefcase-outline" 
+              className="text-7xl mb-4 text-gray-300"
+              style={{ color: '#d1d5db', '--ionicon-fill-color': '#d1d5db', '--ionicon-stroke-color': '#d1d5db', fontSize: '5rem' }}
+            ></ion-icon>
             <p className="text-gray-500 text-lg">No se encontraron casos</p>
             <p className="text-gray-400">Comience agregando su primer caso</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl p-0 shadow-lg border border-gray-600" style={{backgroundColor: '#191919'}}>
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-[#111111]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Caso
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Cliente
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Tipo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Estado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Fechas
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-600" style={{backgroundColor: '#111828'}}>
+              <tbody className="divide-y divide-gray-600" style={{backgroundColor: '#191919'}}>
                 {filteredCases.map(case_ => (
-                  <tr key={case_.id} className="hover:bg-gray-700">
+                  <tr key={case_.id} className="transition">
                     <td className="px-6 py-4">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-gray-300">
                           {case_.title}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-400">
                           {case_.case_number}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-gray-300">
                         {getClientName(case_.client_id)}
                       </div>
                     </td>
@@ -1066,7 +1094,7 @@ const CaseManagement = ({ cases, clients, onRefresh }) => {
                          case_.status === 'closed' ? 'Cerrado' : 'En espera'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                       <div>Inicio: {case_.start_date}</div>
                       {case_.next_hearing && (
                         <div>Audiencia: {case_.next_hearing}</div>
@@ -1177,17 +1205,17 @@ const DocumentManagement = ({ clients, documents, onRefresh }) => {
       <h2 className="text-2xl font-bold text-gray-900">Gestión de Documentos</h2>
 
       {/* Upload Form */}
-      <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Subir Nuevo Documento</h3>
+      <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#191919'}}>
+        <h3 className="text-lg font-medium text-gray-300 mb-4">Subir Nuevo Documento</h3>
         <form onSubmit={handleFileUpload} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Cliente *</label>
               <select
                 required
                 value={selectedClientId}
                 onChange={(e) => setSelectedClientId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Seleccionar cliente</option>
                 {clients.map(client => (
@@ -1199,36 +1227,48 @@ const DocumentManagement = ({ clients, documents, onRefresh }) => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Categoría</label>
               <input
                 type="text"
                 value={uploadCategory}
                 onChange={(e) => setUploadCategory(e.target.value)}
                 placeholder="ej. Contratos, Identificación, etc."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Descripción</label>
             <input
               type="text"
               value={uploadDescription}
               onChange={(e) => setUploadDescription(e.target.value)}
               placeholder="Descripción del documento"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Archivo *</label>
-            <input
-              type="file"
-              required
-              onChange={(e) => setUploadFile(e.target.files[0])}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+            <label className="block text-sm font-medium text-gray-300 mb-1">Archivo *</label>
+            <div className="relative">
+              <input
+                id="uploadFileInputDocuments"
+                type="file"
+                required
+                onChange={(e) => setUploadFile(e.target.files[0])}
+                className="sr-only"
+              />
+              <label
+                htmlFor="uploadFileInputDocuments"
+                className="block w-full pl-10 pr-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+              >
+                <span className="absolute inset-y-0 left-3 flex items-center">
+                  <ion-icon name="cloud-upload-outline" className="text-gray-400"></ion-icon>
+                </span>
+                <span className="truncate">{uploadFile ? uploadFile.name : 'Seleccionar archivo...'}</span>
+              </label>
+            </div>
           </div>
           
           <button
@@ -1242,13 +1282,13 @@ const DocumentManagement = ({ clients, documents, onRefresh }) => {
       </div>
 
       {/* Filter */}
-      <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+      <div className="rounded-xl p-6 shadow-lg card-dark" style={{backgroundColor: '#191919'}}>
         <div className="max-w-md">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por Cliente</label>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Filtrar por Cliente</label>
           <select
             value={filterClient}
             onChange={(e) => setFilterClient(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Todos los clientes</option>
             {clients.map(client => (
@@ -1261,50 +1301,50 @@ const DocumentManagement = ({ clients, documents, onRefresh }) => {
       </div>
 
       {/* Documents List */}
-      <div className="rounded-xl shadow-lg overflow-hidden" style={{backgroundColor: '#111828'}}>
+      <div className="rounded-xl shadow-lg overflow-hidden card-dark">
         {filteredDocuments.length === 0 ? (
           <div className="p-12 text-center">
-            <img 
-              src="https://images.unsplash.com/photo-1629280301895-a098bd9c4a67" 
-              alt="No documents" 
-              className="mx-auto w-48 h-32 object-cover rounded-lg opacity-50 mb-4"
-            />
+            <ion-icon 
+              name="document-text-outline" 
+              className="text-7xl mb-4 text-gray-300"
+              style={{ color: '#d1d5db', '--ionicon-fill-color': '#d1d5db', '--ionicon-stroke-color': '#d1d5db', fontSize: '5rem' }}
+            ></ion-icon>
             <p className="text-gray-500 text-lg">No se encontraron documentos</p>
             <p className="text-gray-400">Comience subiendo el primer documento</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl p-0 shadow-lg border border-gray-600" style={{backgroundColor: '#191919'}}>
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-[#111111]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Documento
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Cliente
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Categoría
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Tamaño
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Fecha
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-600" style={{backgroundColor: '#111828'}}>
+              <tbody className="divide-y divide-gray-600" style={{backgroundColor: '#191919'}}>
                 {filteredDocuments.map(document => (
-                  <tr key={document.id} className="hover:bg-gray-700">
+                  <tr key={document.id} className="transition">
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
                           <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <span className="text-blue-600 font-semibold">📄</span>
+                            <ion-icon name="document-text-outline" className="text-blue-600"></ion-icon>
                           </div>
                         </div>
                         <div className="ml-4">
@@ -1448,27 +1488,27 @@ const AppointmentManagement = ({ appointments, clients, onRefresh }) => {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-white">
             {editingAppointment ? 'Editar Cita' : 'Nueva Cita'}
           </h2>
           <button
             onClick={resetForm}
-            className="px-4 py-2 text-gray-600 hover:text-gray-900"
+            className="px-4 py-2 text-white hover:text-gray-300"
           >
             ← Volver
           </button>
         </div>
 
-        <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+        <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111111'}}>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Cliente *</label>
                 <select
                   required
                   value={formData.client_id}
                   onChange={(e) => setFormData({...formData, client_id: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Seleccionar cliente</option>
                   {clients.map(client => (
@@ -1480,79 +1520,79 @@ const AppointmentManagement = ({ appointments, clients, onRefresh }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Título *</label>
                 <input
                   type="text"
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Descripción</label>
               <textarea
                 rows="2"
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               ></textarea>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Fecha *</label>
                 <input
                   type="date"
                   required
                   value={formData.appointment_date}
                   onChange={(e) => setFormData({...formData, appointment_date: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Hora *</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Hora *</label>
                 <input
                   type="time"
                   required
                   value={formData.appointment_time}
                   onChange={(e) => setFormData({...formData, appointment_time: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Duración (minutos)</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Duración (minutos)</label>
                 <input
                   type="number"
                   value={formData.duration_minutes}
                   onChange={(e) => setFormData({...formData, duration_minutes: parseInt(e.target.value)})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ubicación</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Ubicación</label>
               <input
                 type="text"
                 value={formData.location}
                 onChange={(e) => setFormData({...formData, location: e.target.value})}
                 placeholder="Oficina, videoconferencia, etc."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Notas</label>
               <textarea
                 rows="2"
                 value={formData.notes}
                 onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               ></textarea>
             </div>
 
@@ -1582,85 +1622,89 @@ const AppointmentManagement = ({ appointments, clients, onRefresh }) => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Gestión de Citas</h2>
+        <h2 className="text-2xl font-bold text-gray-300">Gestión de Citas</h2>
         <button
           onClick={() => setShowForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="btn-portal"
         >
           + Nueva Cita
         </button>
       </div>
 
       {/* Filter */}
-      <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+      <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#191919'}}>
         <div className="flex items-center space-x-4">
           <label className="flex items-center">
             <input
               type="checkbox"
               checked={filterUpcoming}
               onChange={(e) => setFilterUpcoming(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="rounded border-gray-700 text-blue-600 focus:ring-blue-500"
             />
-            <span className="ml-2 text-sm text-gray-700">Mostrar solo próximas citas</span>
+            <span className="ml-2 text-sm text-gray-300">Mostrar solo próximas citas</span>
           </label>
         </div>
       </div>
 
       {/* Appointments List */}
-      <div className="rounded-xl shadow-lg overflow-hidden" style={{backgroundColor: '#111828'}}>
+      <div className="rounded-xl shadow-lg overflow-hidden border border-gray-600" style={{backgroundColor: '#0d0d0d'}}>
         {filteredAppointments.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="text-6xl mb-4">📅</div>
+          <div className="p-12 text-center rounded-lg border border-gray-700" style={{backgroundColor: '#191919'}}>
+            <ion-icon 
+              name="calendar-outline" 
+              className="text-7xl mb-4 text-gray-300"
+              style={{ color: '#d1d5db', '--ionicon-fill-color': '#d1d5db', '--ionicon-stroke-color': '#d1d5db', fontSize: '5rem' }}
+            ></ion-icon>
             <p className="text-gray-500 text-lg">No se encontraron citas</p>
             <p className="text-gray-400">Comience programando su primera cita</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl p-0 shadow-lg border border-gray-600" style={{backgroundColor: '#191919'}}>
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-[#111111]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Cita
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Cliente
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Fecha y Hora
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Ubicación
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Estado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-600" style={{backgroundColor: '#111828'}}>
+              <tbody className="divide-y divide-gray-600" style={{backgroundColor: '#191919'}}>
                 {filteredAppointments.map(appointment => (
-                  <tr key={appointment.id} className="hover:bg-gray-700">
+                  <tr key={appointment.id} className="transition">
                     <td className="px-6 py-4">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-gray-300">
                           {appointment.title}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-400">
                           {appointment.description || 'Sin descripción'}
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {getClientName(appointment.client_id)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       <div>{appointment.appointment_date}</div>
-                      <div className="text-gray-500">{appointment.appointment_time}</div>
-                      <div className="text-xs text-gray-400">{appointment.duration_minutes} min</div>
+                      <div className="text-gray-400">{appointment.appointment_time}</div>
+                      <div className="text-xs text-gray-500">{appointment.duration_minutes} min</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                       {appointment.location || 'No especificada'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -1710,6 +1754,7 @@ const ClientLogin = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [rehydrating, setRehydrating] = useState(false);
+  const [showPhone, setShowPhone] = useState(false);
 
   useEffect(() => {
     try {
@@ -1734,69 +1779,84 @@ const ClientLogin = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: '#111828'}}>
-      <div className="max-w-md w-full rounded-xl shadow-lg p-8" style={{backgroundColor: '#111828'}}>
-        <div className="text-center mb-8">
-          <img 
-            src="https://images.unsplash.com/photo-1662104935883-e9dd0619eaba" 
-            alt="Legal Services" 
-            className="mx-auto w-20 h-20 rounded-full object-cover mb-4"
-          />
-          <h2 className="text-2xl font-bold text-gray-900">Portal del Cliente</h2>
-          <p className="text-gray-600">Accede para ver el estado de tus casos</p>
-          {rehydrating && (
-            <div className="mt-3 text-sm text-blue-700 bg-blue-50 p-3 rounded-lg">
-              Sesión detectada, restaurando...
-            </div>
-          )}
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#000000' }}>
+      <div className="max-w-md w-full card card-hover overflow-hidden relative">
+        {/* Encabezado del card */}
+        <div className="bg-[#111111] px-6 py-4 flex items-center gap-3">
+          <ion-icon 
+            name="lock-closed-outline" 
+            style={{ color: '#9ca3af', fontSize: '1.5rem', '--ionicon-fill-color': '#9ca3af', '--ionicon-stroke-color': '#9ca3af' }}
+          ></ion-icon>
+          <h2 className="text-xl font-semibold text-gray-200">Portal del Cliente</h2>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email *
-            </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="su-email@ejemplo.com"
-            />
+        {/* Contenido del card */}
+        <div className="p-6" style={{ backgroundColor: '#0d0d0d' }}>
+          <div className="text-center mb-6">
+            <p className="text-gray-400">Accede para ver el estado de tus casos</p>
+            {rehydrating && (
+              <div className="mt-3 text-sm text-blue-300 bg-[#0c1f33] border border-blue-700 p-3 rounded-lg">
+                Sesión detectada, restaurando...
+              </div>
+            )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Teléfono *
-            </label>
-            <input
-              type="tel"
-              required
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="+34-91-123-4567"
-            />
-          </div>
-
-          {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">
-              {error}
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Email *</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="email@ejemplo.com"
+              />
             </div>
-          )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Teléfono *</label>
+              <div className="relative">
+                <input
+                  type={showPhone ? 'tel' : 'password'}
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-4 py-2 pr-12 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="+52 1234567890"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPhone(!showPhone)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200"
+                  aria-label={showPhone ? 'Ocultar teléfono' : 'Mostrar teléfono'}
+                >
+                  <ion-icon 
+                    name={showPhone ? 'eye-off-outline' : 'eye-outline'} 
+                    style={{ color: '#9ca3af', fontSize: '1.2rem', '--ionicon-fill-color': '#9ca3af', '--ionicon-stroke-color': '#9ca3af' }}
+                  ></ion-icon>
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="text-red-400 text-sm bg-[#2a0f0f] border border-red-700 p-3 rounded-lg">
+                {error}
+              </div>
+            )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-300"
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-300 transform transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-xl"
           >
             {loading ? 'Accediendo...' : 'Acceder'}
           </button>
-        </form>
+          </form>
 
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Use su email registrado y número de teléfono</p>
+          <div className="mt-6 text-center text-sm text-gray-500">
+            <p>Use su email registrado y número de teléfono</p>
+          </div>
         </div>
       </div>
     </div>
@@ -1832,43 +1892,45 @@ const ClientDashboard = ({ clientData, onLogout }) => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'closed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-blue-100 text-blue-800';
+      case 'active': return 'status-active';
+      case 'pending': return 'status-pending';
+      case 'inactive': return 'status-inactive';
+      case 'closed': return 'status-completed';
+      case 'completed': return 'status-completed';
+      default: return 'status-completed';
     }
   };
 
   const getUpdateTypeIcon = (type) => {
     switch (type) {
-      case 'progress': return '📈';
-      case 'hearing': return '⚖️';
-      case 'document': return '📄';
-      case 'status_change': return '🔄';
-      default: return '📝';
+      case 'progress': return (<ion-icon name="trending-up-outline"></ion-icon>);
+      case 'hearing': return (<ion-icon name="business-outline"></ion-icon>);
+      case 'document': return (<ion-icon name="document-text-outline"></ion-icon>);
+      case 'status_change': return (<ion-icon name="swap-horizontal-outline"></ion-icon>);
+      default: return (<ion-icon name="create-outline"></ion-icon>);
     }
   };
 
   if (selectedCase && caseTimeline) {
     return (
-      <div className="min-h-screen bg-gray-100 p-6">
+      <div className="min-h-screen p-6" style={{backgroundColor: '#000000'}}>
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-      <div className="rounded-xl p-6 shadow-lg mb-6" style={{backgroundColor: '#111828'}}>
+      <div className="card card-hover p-6 mb-6">
             <div className="flex items-center justify-between">
               <div>
                 <button
                   onClick={() => setSelectedCase(null)}
-                  className="text-blue-600 hover:text-blue-800 mb-2"
+                  className="text-blue-400 hover:text-blue-300 mb-2"
                 >
                   ← Volver al Dashboard
                 </button>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-gray-200">
                   {caseTimeline.case.title}
                 </h1>
-                <p className="text-gray-600">Caso #{caseTimeline.case.case_number}</p>
+                <p className="text-gray-400">Caso #{caseTimeline.case.case_number}</p>
               </div>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(caseTimeline.case.status)}`}>
+              <span className={`status-badge ${getStatusColor(caseTimeline.case.status)}`}>
                 {caseTimeline.case.status === 'active' ? 'Activo' : 
                  caseTimeline.case.status === 'pending' ? 'Pendiente' : 'Cerrado'}
               </span>
@@ -1877,21 +1939,21 @@ const ClientDashboard = ({ clientData, onLogout }) => {
 
           {/* Case Details */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+            <div className="card card-hover p-6">
               <h3 className="font-semibold text-gray-300 mb-3">Información del Caso</h3>
               <div className="space-y-2 text-sm">
-                <p><span className="font-medium">Tipo:</span> {caseTimeline.case.case_type}</p>
-                <p><span className="font-medium">Fecha Inicio:</span> {formatDate(caseTimeline.case.start_date)}</p>
+                <p className="text-gray-400"><span className="font-medium text-gray-300">Tipo:</span> {caseTimeline.case.case_type}</p>
+                <p className="text-gray-400"><span className="font-medium text-gray-300">Fecha Inicio:</span> {formatDate(caseTimeline.case.start_date)}</p>
                 {caseTimeline.case.next_hearing && (
-                  <p><span className="font-medium">Próxima Audiencia:</span> {formatDate(caseTimeline.case.next_hearing)}</p>
+                  <p className="text-gray-400"><span className="font-medium text-gray-300">Próxima Audiencia:</span> {formatDate(caseTimeline.case.next_hearing)}</p>
                 )}
                 {caseTimeline.case.court_name && (
-                  <p><span className="font-medium">Tribunal:</span> {caseTimeline.case.court_name}</p>
+                  <p className="text-gray-400"><span className="font-medium text-gray-300">Tribunal:</span> {caseTimeline.case.court_name}</p>
                 )}
               </div>
             </div>
             
-            <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+            <div className="card card-hover p-6">
               <h3 className="font-semibold text-gray-300 mb-3">Próximas Citas</h3>
               {caseTimeline.appointments.length === 0 ? (
                 <p className="text-gray-500 text-sm">No hay citas programadas</p>
@@ -1899,23 +1961,23 @@ const ClientDashboard = ({ clientData, onLogout }) => {
                 <div className="space-y-2">
                   {caseTimeline.appointments.slice(0, 3).map(appointment => (
                     <div key={appointment.id} className="text-sm">
-                      <p className="font-medium">{appointment.title}</p>
-                      <p className="text-gray-600">{appointment.appointment_date} - {appointment.appointment_time}</p>
+                      <p className="font-medium text-gray-300">{appointment.title}</p>
+                      <p className="text-gray-400">{appointment.appointment_date} - {appointment.appointment_time}</p>
                     </div>
                   ))}
                 </div>
               )}
             </div>
             
-            <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+            <div className="card card-hover p-6">
               <h3 className="font-semibold text-gray-300 mb-3">Documentos</h3>
               <p className="text-2xl font-bold text-blue-600 mb-2">{caseTimeline.documents.length}</p>
-              <p className="text-gray-600 text-sm">documentos disponibles</p>
+              <p className="text-gray-400 text-sm">documentos disponibles</p>
             </div>
           </div>
 
           {/* Timeline */}
-          <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+          <div className="card card-hover p-6">
             <h3 className="text-lg font-semibold text-gray-300 mb-6">Historial y Avances del Caso</h3>
             
             {loadingTimeline ? (
@@ -1934,11 +1996,11 @@ const ClientDashboard = ({ clientData, onLogout }) => {
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center space-x-2">
                             <span className="text-lg">{getUpdateTypeIcon(update.update_type)}</span>
-                            <h4 className="font-medium text-gray-900">{update.title}</h4>
+                            <h4 className="font-medium text-gray-200">{update.title}</h4>
                           </div>
                           <span className="text-sm text-gray-500">{formatDate(update.created_at)}</span>
                         </div>
-                        <p className="text-gray-700">{update.description}</p>
+                        <p className="text-gray-400">{update.description}</p>
                       </div>
                     </div>
                   ))
@@ -1952,66 +2014,125 @@ const ClientDashboard = ({ clientData, onLogout }) => {
   }
 
   return (
-    <div className="min-h-screen p-6" style={{backgroundColor: '#111828'}}>
+    <div className="min-h-screen p-6" style={{backgroundColor: '#000000'}}>
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-xl p-8 text-white mb-6">
+        {/* Header con borde 3D */}
+        <div
+          className="rounded-xl p-8 text-white mb-6"
+          style={{
+            background: 'linear-gradient(#191919, #191919) padding-box, linear-gradient(180deg, #4b5563, #111111) border-box',
+            border: '1px solid transparent',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -2px 0 rgba(0,0,0,0.75), 0 22px 48px rgba(0,0,0,0.65)'
+          }}
+        >
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold">
                 Bienvenido, {clientData.client_info.first_name}
               </h1>
-              <p className="text-blue-200">Panel de seguimiento de casos legales</p>
+              <p className="text-gray-400">Panel de seguimiento de casos legales</p>
             </div>
             <button
               onClick={onLogout}
-              className="bg-white text-blue-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transform transition-all duration-200 ease-out hover:-translate-y-[2px] hover:shadow-xl"
             >
               Cerrar Sesión
             </button>
           </div>
         </div>
 
-        {/* Stats */}
+        {/* Stats - Modern Design for Client Portal */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="rounded-xl p-6 shadow-lg text-center" style={{backgroundColor: '#111828'}}>
-            <div className="text-3xl font-bold text-blue-400 mb-2">{clientData.active_cases.length}</div>
-            <div className="text-gray-300">Casos Activos</div>
+          {/* Casos Activos */}
+          <div className="group rounded-2xl p-6 shadow-2xl border border-purple-500/20 relative overflow-hidden transition-all duration-300 hover:scale-105 cursor-pointer" style={{background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.10) 0%, rgba(88, 28, 135, 0.05) 50%, rgba(20, 20, 20, 0.90) 100%)', minHeight: '140px', backdropFilter: 'blur(15px)'}}>
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="flex items-start gap-3 pt-2 relative z-10">
+              <div className="bg-gradient-to-br from-purple-400 to-purple-600 p-3 rounded-2xl w-12 h-12 flex items-center justify-center flex-shrink-0 shadow-lg transition-all duration-300">
+                <ion-icon name="folder-outline" style={{fontSize: '1.4rem', color: 'white'}}></ion-icon>
+              </div>
+              <div className="flex-1">
+                <p className="text-xl font-medium text-gray-300 mb-10 group-hover:text-white transition-colors duration-300">Casos Activos</p>
+                <div className="flex justify-start ml-6">
+                  <p className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-purple-300 bg-clip-text text-transparent group-hover:from-purple-300 group-hover:to-purple-200 transition-all duration-300">{clientData.active_cases.length}</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="rounded-xl p-6 shadow-lg text-center" style={{backgroundColor: '#111828'}}>
-            <div className="text-3xl font-bold text-green-400 mb-2">{clientData.recent_updates.length}</div>
-            <div className="text-gray-300">Actualizaciones</div>
+
+          {/* Actualizaciones */}
+          <div className="group rounded-2xl p-6 shadow-2xl border border-blue-500/20 relative overflow-hidden transition-all duration-300 hover:scale-105 cursor-pointer" style={{background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.10) 0%, rgba(30, 64, 175, 0.05) 50%, rgba(20, 20, 20, 0.90) 100%)', minHeight: '140px', backdropFilter: 'blur(15px)'}}>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="flex items-start gap-3 pt-2 relative z-10">
+              <div className="bg-gradient-to-br from-blue-400 to-blue-600 p-3 rounded-2xl w-12 h-12 flex items-center justify-center flex-shrink-0 shadow-lg transition-all duration-300">
+                <ion-icon name="notifications-outline" style={{fontSize: '1.4rem', color: 'white'}}></ion-icon>
+              </div>
+              <div className="flex-1">
+                <p className="text-xl font-medium text-gray-300 mb-10 group-hover:text-white transition-colors duration-300">Actualizaciones</p>
+                <div className="flex justify-start ml-6">
+                  <p className="text-5xl font-bold bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-blue-200 transition-all duration-300">{clientData.recent_updates.length}</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="rounded-xl p-6 shadow-lg text-center" style={{backgroundColor: '#111828'}}>
-            <div className="text-3xl font-bold text-purple-400 mb-2">{clientData.upcoming_appointments.length}</div>
-            <div className="text-gray-300">Citas Próximas</div>
+
+          {/* Citas Próximas */}
+          <div className="group rounded-2xl p-6 shadow-2xl border border-indigo-500/20 relative overflow-hidden transition-all duration-300 hover:scale-105 cursor-pointer" style={{background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.10) 0%, rgba(55, 48, 163, 0.05) 50%, rgba(20, 20, 20, 0.90) 100%)', minHeight: '140px', backdropFilter: 'blur(15px)'}}>
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="flex items-start gap-3 pt-2 relative z-10">
+              <div className="bg-gradient-to-br from-indigo-400 to-indigo-600 p-3 rounded-2xl w-12 h-12 flex items-center justify-center flex-shrink-0 shadow-lg transition-all duration-300">
+                <ion-icon name="time-outline" style={{fontSize: '1.4rem', color: 'white'}}></ion-icon>
+              </div>
+              <div className="flex-1">
+                <p className="text-xl font-medium text-gray-300 mb-10 group-hover:text-white transition-colors duration-300">Citas Próximas</p>
+                <div className="flex justify-start ml-6">
+                  <p className="text-5xl font-bold bg-gradient-to-r from-indigo-400 to-indigo-300 bg-clip-text text-transparent group-hover:from-indigo-300 group-hover:to-indigo-200 transition-all duration-300">{clientData.upcoming_appointments.length}</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="rounded-xl p-6 shadow-lg text-center" style={{backgroundColor: '#111828'}}>
-            <div className="text-3xl font-bold text-orange-400 mb-2">{clientData.total_documents}</div>
-            <div className="text-gray-300">Documentos</div>
+
+          {/* Documentos */}
+          <div className="group rounded-2xl p-6 shadow-2xl border border-green-500/20 relative overflow-hidden transition-all duration-300 hover:scale-105 cursor-pointer" style={{background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.10) 0%, rgba(21, 128, 61, 0.05) 50%, rgba(20, 20, 20, 0.90) 100%)', minHeight: '140px', backdropFilter: 'blur(15px)'}}>
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="flex items-start gap-3 pt-2 relative z-10">
+              <div className="bg-gradient-to-br from-green-400 to-green-600 p-3 rounded-2xl w-12 h-12 flex items-center justify-center flex-shrink-0 shadow-lg transition-all duration-300">
+                <ion-icon name="document-text-outline" style={{fontSize: '1.4rem', color: 'white'}}></ion-icon>
+              </div>
+              <div className="flex-1">
+                <p className="text-xl font-medium text-gray-300 mb-10 group-hover:text-white transition-colors duration-300">Documentos</p>
+                <div className="flex justify-start ml-6">
+                  <p className="text-5xl font-bold bg-gradient-to-r from-green-400 to-green-300 bg-clip-text text-transparent group-hover:from-green-300 group-hover:to-green-200 transition-all duration-300">{clientData.total_documents}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Active Cases */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="card p-6" style={{
+            backgroundColor: '#0d0d0d',
+            border: '1px solid #4b5563'
+          }}>
             <h2 className="text-xl font-bold text-gray-300 mb-4">Mis Casos Activos</h2>
             {clientData.active_cases.length === 0 ? (
               <p className="text-gray-500">No tienes casos activos</p>
             ) : (
               <div className="space-y-4">
                 {clientData.active_cases.map(case_ => (
-                  <div key={case_.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div key={case_.id} className="card p-4 relative" style={{
+                    backgroundColor: '#191919'
+                  }}>
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-medium text-gray-900">{case_.title}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(case_.status)}`}>
+                      <h3 className="font-medium text-gray-200">{case_.title}</h3>
+                      <span className={`status-badge ${getStatusColor(case_.status)}`}>
                         {case_.status === 'active' ? 'Activo' : 'Pendiente'}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">Caso #{case_.case_number}</p>
-                    <p className="text-sm text-gray-700 mb-3">{case_.description}</p>
+                    <p className="text-sm text-gray-400 mb-2">Caso #{case_.case_number}</p>
+                    <p className="text-sm text-gray-400 mb-3">{case_.description}</p>
                     {case_.next_hearing && (
-                      <p className="text-sm text-blue-600 mb-3">
+                      <p className="text-sm text-blue-400 mb-3">
                         Próxima audiencia: {formatDate(case_.next_hearing)}
                       </p>
                     )}
@@ -2028,19 +2149,24 @@ const ClientDashboard = ({ clientData, onLogout }) => {
           </div>
 
           {/* Recent Updates */}
-          <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+          <div className="card p-6" style={{
+            backgroundColor: '#0d0d0d',
+            border: '1px solid #4b5563'
+          }}>
             <h2 className="text-xl font-bold text-gray-300 mb-4">Actualizaciones Recientes</h2>
             {clientData.recent_updates.length === 0 ? (
               <p className="text-gray-500">No hay actualizaciones recientes</p>
             ) : (
               <div className="space-y-4">
                 {clientData.recent_updates.slice(0, 5).map(update => (
-                  <div key={update.id} className="border-l-4 border-blue-500 pl-4">
+                  <div key={update.id} className="border-l-4 border-blue-500 pl-4 table-row" style={{
+                    backgroundColor: '#191919'
+                  }}>
                     <div className="flex items-center space-x-2 mb-1">
                       <span>{getUpdateTypeIcon(update.update_type)}</span>
-                      <h4 className="font-medium text-gray-900 text-sm">{update.title}</h4>
+                      <h4 className="font-medium text-gray-200 text-sm">{update.title}</h4>
                     </div>
-                    <p className="text-sm text-gray-700 mb-1">{update.description}</p>
+                    <p className="text-sm text-gray-400 mb-1">{update.description}</p>
                     <p className="text-xs text-gray-500">{formatDate(update.created_at)}</p>
                   </div>
                 ))}
@@ -2050,7 +2176,7 @@ const ClientDashboard = ({ clientData, onLogout }) => {
         </div>
 
         {/* Upcoming Appointments */}
-        <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+        <div className="rounded-xl p-6 shadow-lg" style={{ backgroundColor: '#0d0d0d', border: '1px solid #4b5563' }}>
           <h2 className="text-xl font-bold text-gray-300 mb-4">Próximas Citas</h2>
           {clientData.upcoming_appointments.length === 0 ? (
             <p className="text-gray-500">No tienes citas programadas</p>
@@ -2060,10 +2186,10 @@ const ClientDashboard = ({ clientData, onLogout }) => {
                 <div key={appointment.id} className="border border-gray-200 rounded-lg p-4">
                   <h4 className="font-medium text-gray-900 mb-2">{appointment.title}</h4>
                   <div className="text-sm text-gray-600 space-y-1">
-                    <p>📅 {formatDate(appointment.appointment_date)}</p>
-                    <p>🕐 {appointment.appointment_time}</p>
-                    <p>⏱️ {appointment.duration_minutes} minutos</p>
-                    {appointment.location && <p>📍 {appointment.location}</p>}
+                    <p><ion-icon name="calendar-outline"></ion-icon> {formatDate(appointment.appointment_date)}</p>
+                    <p><ion-icon name="time-outline"></ion-icon> {appointment.appointment_time}</p>
+                    <p><ion-icon name="hourglass-outline"></ion-icon> {appointment.duration_minutes} minutos</p>
+                    {appointment.location && <p><ion-icon name="location-outline"></ion-icon> {appointment.location}</p>}
                   </div>
                   {appointment.description && (
                     <p className="text-sm text-gray-700 mt-2">{appointment.description}</p>
@@ -2127,27 +2253,28 @@ const CaseUpdateManagement = ({ cases, clients, onRefresh }) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Actualizaciones de Casos</h2>
+        <h2 className="text-2xl font-bold text-white">Actualizaciones de Casos</h2>
         <button
           onClick={() => setShowForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="btn-portal"
+          title="Crear nueva actualización"
         >
-          + Nueva Actualización
+          Nueva Actualización
         </button>
       </div>
 
       {showForm && (
-        <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+        <div className="rounded-xl p-6 shadow-lg card-dark" style={{backgroundColor: '#111111'}}>
           <h3 className="text-lg font-medium text-gray-300 mb-4">Crear Actualización de Caso</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Caso *</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Caso *</label>
                 <select
                   required
                   value={formData.case_id}
                   onChange={(e) => setFormData({...formData, case_id: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Seleccionar caso</option>
                   {cases.map(case_ => (
@@ -2159,11 +2286,11 @@ const CaseUpdateManagement = ({ cases, clients, onRefresh }) => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Actualización</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Tipo de Actualización</label>
                 <select
                   value={formData.update_type}
                   onChange={(e) => setFormData({...formData, update_type: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="general">General</option>
                   <option value="progress">Progreso</option>
@@ -2175,25 +2302,25 @@ const CaseUpdateManagement = ({ cases, clients, onRefresh }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Título *</label>
               <input
                 type="text"
                 required
                 value={formData.title}
                 onChange={(e) => setFormData({...formData, title: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="ej. Audiencia programada, Documentos recibidos..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Descripción *</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Descripción *</label>
               <textarea
                 rows="3"
                 required
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-700 rounded-lg bg-[#191919] text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Descripción detallada de la actualización..."
               ></textarea>
             </div>
@@ -2231,16 +2358,16 @@ const CaseUpdateManagement = ({ cases, clients, onRefresh }) => {
         </div>
       )}
 
-      <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#111828'}}>
+      <div className="rounded-xl p-6 shadow-lg overflow-hidden border border-gray-600" style={{ backgroundColor: '#0d0d0d' }}>
         <h3 className="text-lg font-medium text-gray-300 mb-4">Portal del Cliente</h3>
-        <p className="text-gray-600 mb-4">
+        <p className="text-gray-400 mb-4">
           Los clientes pueden acceder a su portal usando su email y teléfono registrados en:
         </p>
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <p className="font-mono text-blue-800">
+        <div className="p-4 rounded-lg border border-gray-700" style={{ backgroundColor: '#191919' }}>
+          <p className="font-mono text-blue-400">
             {window.location.origin}/client
           </p>
-          <p className="text-sm text-blue-600 mt-2">
+          <p className="text-sm text-gray-400 mt-2">
             Los clientes verán sus casos, actualizaciones y próximas citas
           </p>
         </div>
@@ -2440,26 +2567,22 @@ function App() {
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                  </svg>
                </div>
-               <input
-                 type="text"
-                 placeholder="Buscar clientes, casos, documentos..."
-                 value={searchTerm}
-                 onChange={(e) => setSearchTerm(e.target.value)}
-                 className="block w-full pl-10 pr-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                 style={{minWidth: '300px'}}
-               />
+              <input
+                type="text"
+                placeholder="Buscar clientes, casos, documentos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="block w-full pl-10 pr-3 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 search-input-min"
+              />
              </div>
              
-             <button
-                 onClick={() => { window.location.href = '/client'; }}
-                 className="btn-primary text-black"
-                 style={{backgroundColor: '#F8C61E'}}
-                 title="Abrir portal del cliente"
-                 onMouseEnter={(e) => e.target.style.backgroundColor = '#E6B31A'}
-                 onMouseLeave={(e) => e.target.style.backgroundColor = '#F8C61E'}
-               >
-                 Portal Cliente
-               </button>
+            <button
+                onClick={() => { window.location.href = '/client'; }}
+                className="btn-portal"
+                title="Abrir portal del cliente"
+              >
+                Portal Cliente
+              </button>
            </div>
          </div>
 

@@ -232,3 +232,63 @@ Si tienes problemas o preguntas:
 1. Revisa la sección de solución de problemas
 2. Verifica que todos los servicios estén ejecutándose
 3. Consulta los logs en las terminales
+
+---
+
+## 🧪 Pruebas
+
+### Backend (pytest)
+- Requisitos: `pip install -r backend/requirements.txt` (incluye `httpx` requerido por `TestClient`).
+- Ejecutar:
+  ```bash
+  cd backend
+  py -3 -m pytest -q
+  ```
+- Notas:
+  - Se ha añadido `backend/pytest.ini` para silenciar un `PendingDeprecationWarning` de Starlette.
+  - Las pruebas usan `TestClient` y `monkeypatch` para evitar acceso a MongoDB real.
+
+### Frontend (Jest + Testing Library)
+- Instalar dependencias de test:
+  ```bash
+  cd frontend
+  npm install
+  ```
+- Ejecutar:
+  ```bash
+  npm test -- --watchAll=false
+  ```
+- Notas:
+  - Existe `src/setupTests.js` que importa `@testing-library/jest-dom`.
+  - Se incluye un mock manual de `axios` en `src/__mocks__/axios.js` para compatibilidad con Jest.
+  - `App.jsx` evita usar `import.meta` en tiempo de carga para no romper en entorno de Jest.
+
+## 🔄 Migración a Lifespan Events (FastAPI)
+
+Para cumplir con las recomendaciones modernas de FastAPI, se migró el manejador de `shutdown` a la API de **lifespan**.
+
+### Antes
+```python
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    client.close()
+```
+
+### Después
+```python
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup (si se requiere)
+    try:
+        yield
+    finally:
+        # Shutdown
+        client.close()
+
+app = FastAPI(lifespan=lifespan)
+```
+
+- Ubicación: `backend/server.py`.
+- Beneficios: unifica startup/shutdown, elimina warnings por deprecación y facilita gestión de recursos.

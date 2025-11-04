@@ -12,6 +12,7 @@ import uuid
 from datetime import datetime, timezone
 import shutil
 from enum import Enum
+from contextlib import asynccontextmanager
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -25,8 +26,17 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ.get('DB_NAME', 'legaldesk')]
 
-# Create the main app without a prefix
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic (si se requiere) va antes del yield
+    try:
+        yield
+    finally:
+        # Shutdown logic
+        client.close()
+
+# Create the main app without a prefix, usando lifespan
+app = FastAPI(lifespan=lifespan)
 
 # Mount static files for uploads
 app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
@@ -835,6 +845,3 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()

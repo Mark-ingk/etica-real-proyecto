@@ -15,7 +15,7 @@ services:
       - key: DB_NAME
         value: legaldesk
       - key: CORS_ORIGINS
-        value: "https://YOUR-SITE.netlify.app, https://YOUR-CUSTOM-DOMAIN"
+        value: "https://legaldesk.netlify.app"
     disk:
       name: uploads
       mountPath: /opt/render/project/src/backend/uploads

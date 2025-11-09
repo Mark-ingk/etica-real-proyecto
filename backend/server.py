@@ -831,10 +831,14 @@ async def admin_migrate_dashboard_to_legaldesk(source_db: str = "dashboard_etica
 # Include the router in the main app
 app.include_router(api_router)
 
+cors_origins = os.environ.get('CORS_ORIGINS', '*').split(',')
+cors_origin_regex = os.environ.get('CORS_ORIGIN_REGEX')
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=cors_origins,
+    allow_origin_regex=cors_origin_regex,
     allow_methods=["*"],
     allow_headers=["*"],
 )

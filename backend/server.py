@@ -25,7 +25,7 @@ uploads_dir.mkdir(exist_ok=True)
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ.get('DB_NAME', 'legaldesk')]
+db = client[os.environ.get('dashboard.etica', 'legaldesk')]
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

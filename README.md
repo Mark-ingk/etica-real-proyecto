@@ -176,8 +176,8 @@ La aplicación utiliza MongoDB con las siguientes colecciones:
 Puedes crear un archivo `.env` en el directorio backend:
 
 ```env
-MONGODB_URL=mongodb://localhost:27017
-DATABASE_NAME=dashboard_etica
+MONGO_URL=mongodb://localhost:27017
+DB_NAME=legaldesk
 PORT=8000
 ```
 
@@ -185,7 +185,32 @@ PORT=8000
 La aplicación se conecta automáticamente a:
 - **Host**: localhost
 - **Puerto**: 27017
-- **Base de datos**: dashboard_etica
+- **Base de datos**: legaldesk (configurable vía `DB_NAME`)
+
+### Producción (Render)
+- Define variables de entorno en tu servicio de Render:
+  - `MONGO_URL`: cadena de conexión de tu clúster (Atlas/Render PostgreSQL no aplica para Mongo).
+  - `DB_NAME`: nombre de la base (por defecto `legaldesk`).
+- El backend ya fue actualizado para leer `DB_NAME` con fallback a `legaldesk`.
+
+### Índices recomendados en MongoDB
+Para mejorar rendimiento y búsquedas, puedes asegurar índices ejecutando:
+
+```bash
+# En PowerShell (Windows), define MONGO_URL temporalmente para esta sesión
+$env:MONGO_URL="mongodb+srv://usuario:pass@host/"
+$env:DB_NAME="legaldesk"  # opcional, por defecto 'legaldesk'
+
+# Ejecuta el script de índices
+cd dashboard-etica/backend
+python ensure_indexes.py
+```
+Colecciones e índices sugeridos:
+- `clients`: `email` (único), `status`
+- `cases`: `client_id`, `status`
+- `appointments`: `client_id`, `appointment_date`
+- `documents`: `case_id`, `client_id`
+- `case_updates`: `case_id`, `client_id`, `is_visible_to_client`
 
 ##  Solución de Problemas
 

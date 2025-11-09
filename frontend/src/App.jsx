@@ -4,16 +4,47 @@ import axios from 'axios';
 
 const BACKEND_URL = (() => {
   if (typeof window !== 'undefined' && window.__BACKEND_URL__) return window.__BACKEND_URL__;
-  if (typeof process !== 'undefined' && process.env && process.env.VITE_BACKEND_URL) return process.env.VITE_BACKEND_URL;
+  // Prefer Vite env at runtime
   try {
-    // Read Vite env without breaking Jest by evaluating at runtime
     // eslint-disable-next-line no-new-func
-    const val = new Function('return (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_BACKEND_URL)')();
-    if (val) return val;
+    const viteEnv = new Function('return (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_BACKEND_URL)')();
+    if (viteEnv) return viteEnv;
   } catch {}
+  // Fallback to process.env for tests or non-Vite contexts
+  if (typeof process !== 'undefined' && process.env && process.env.VITE_BACKEND_URL) return process.env.VITE_BACKEND_URL;
   return 'http://localhost:8000';
 })();
 const API = `${BACKEND_URL}/api`;
+
+// Utility helpers (available to all components)
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'active': return 'status-active';
+    case 'pending': return 'status-pending';
+    case 'inactive': return 'status-inactive';
+    case 'closed': return 'status-completed';
+    case 'completed': return 'status-completed';
+    default: return 'status-completed';
+  }
+};
+
+const getUpdateTypeIcon = (type) => {
+  switch (type) {
+    case 'progress': return (<ion-icon name="trending-up-outline"></ion-icon>);
+    case 'hearing': return (<ion-icon name="business-outline"></ion-icon>);
+    case 'document': return (<ion-icon name="document-text-outline"></ion-icon>);
+    case 'status_change': return (<ion-icon name="swap-horizontal-outline"></ion-icon>);
+    default: return (<ion-icon name="create-outline"></ion-icon>);
+  }
+};
 
 // Navigation Component
 const Sidebar = ({ activeSection, setActiveSection, isCollapsed }) => {
@@ -977,7 +1008,7 @@ const CaseManagement = ({ cases, clients, onRefresh }) => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Gestión de Casos</h2>
+        <h2 className="text-2xl font-bold text-white">Gestión de Casos</h2>
         <button
           onClick={() => setShowForm(true)}
           className="btn-portal"
@@ -1202,7 +1233,7 @@ const DocumentManagement = ({ clients, documents, onRefresh }) => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Gestión de Documentos</h2>
+      <h2 className="text-2xl font-bold text-white">Gestión de Documentos</h2>
 
       {/* Upload Form */}
       <div className="rounded-xl p-6 shadow-lg" style={{backgroundColor: '#191919'}}>
@@ -1879,35 +1910,6 @@ const ClientDashboard = ({ clientData, onLogout }) => {
       console.error('Error loading case timeline:', error);
     } finally {
       setLoadingTimeline(false);
-    }
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active': return 'status-active';
-      case 'pending': return 'status-pending';
-      case 'inactive': return 'status-inactive';
-      case 'closed': return 'status-completed';
-      case 'completed': return 'status-completed';
-      default: return 'status-completed';
-    }
-  };
-
-  const getUpdateTypeIcon = (type) => {
-    switch (type) {
-      case 'progress': return (<ion-icon name="trending-up-outline"></ion-icon>);
-      case 'hearing': return (<ion-icon name="business-outline"></ion-icon>);
-      case 'document': return (<ion-icon name="document-text-outline"></ion-icon>);
-      case 'status_change': return (<ion-icon name="swap-horizontal-outline"></ion-icon>);
-      default: return (<ion-icon name="create-outline"></ion-icon>);
     }
   };
 
